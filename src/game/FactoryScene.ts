@@ -10,6 +10,12 @@ const TILESET_KEY = "factory-tiles";
 const MOVEMENT_SPEED = 160;
 
 type Character = (typeof CHARACTERS)[number];
+type TiledProperty = { name: string; value: unknown };
+
+function getProperty(object: Phaser.Types.Tilemaps.TiledObject, name: string): unknown {
+  const properties = object.properties as TiledProperty[] | undefined;
+  return properties?.find((property) => property.name === name)?.value;
+}
 
 interface Npc {
   character: Character;
@@ -78,8 +84,9 @@ export class FactoryScene extends Phaser.Scene {
       const collisionLayer = map.getObjectLayer("collisions");
       const spawnLayer = map.getObjectLayer("spawn");
       const npcLayer = map.getObjectLayer("npcs");
+      const signLayer = map.getObjectLayer("signs");
       const spawnPoint = spawnLayer?.objects.find((object) => object.name === "player-spawn");
-      if (!collisionLayer || !spawnPoint || !npcLayer) {
+      if (!collisionLayer || !spawnPoint || !npcLayer || !signLayer) {
         throw new Error("The factory object layers are incomplete.");
       }
 
@@ -104,6 +111,24 @@ export class FactoryScene extends Phaser.Scene {
       this.player = this.physics.add.sprite(spawnPoint.x ?? 0, spawnPoint.y ?? 0, "player-down");
       this.player.setDepth(20).setCollideWorldBounds(true).setSize(10, 12).setOffset(3, 7);
       this.physics.add.collider(this.player, collisions);
+
+      for (const object of signLayer.objects) {
+        const text = getProperty(object, "text");
+        if (typeof text !== "string" || object.x === undefined || object.y === undefined) {
+          console.error(`Skipping malformed sign ${object.name || object.id}.`);
+          continue;
+        }
+
+        this.add.text(object.x, object.y, text, {
+          fontFamily: '"Courier New", monospace',
+          fontSize: text === "Блядер" ? "24px" : "15px",
+          color: "#fff4dc",
+          backgroundColor: "#24303a",
+          padding: { x: 6, y: 3 },
+          stroke: "#171b18",
+          strokeThickness: 2
+        }).setOrigin(0.5).setDepth(15);
+      }
 
       const npcColors = ["npc-security", "npc-it", "npc-shifts", "npc-qm", "npc-sewing"];
       this.npcs = CHARACTERS.flatMap((character, index) => {

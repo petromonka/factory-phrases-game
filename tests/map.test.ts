@@ -81,6 +81,14 @@ it("contains required layers and game objects", () => {
   expect(layers.get("collisions")?.objects?.length).toBeGreaterThan(10);
 });
 
+it("renders signs from map object properties", () => {
+  const source = readFileSync("src/game/FactoryScene.ts", "utf8");
+
+  expect(source).toContain('map.getObjectLayer("signs")');
+  expect(source).toContain('getProperty(object, "text")');
+  expect(source).toContain(".setOrigin(0.5)");
+});
+
 it("uses the agreed 60 by 34 grid and generated original tilesheet", () => {
   const map = readMap();
 
