@@ -1,5 +1,6 @@
 import { expect, it } from "vitest";
 import { CHARACTERS } from "../src/game/characters";
+import { CONTROLLERS } from "../src/game/controllers";
 
 it("contains the five approved characters and exact phrases", () => {
   expect(CHARACTERS).toHaveLength(5);
@@ -18,4 +19,15 @@ it("assigns Vasyl the dedicated tall sprite", () => {
   expect(vasyl?.spriteKey).toBe("npc-vasyl-tall");
   expect(CHARACTERS.filter((character) => character.id !== "it-vasyl"))
     .not.toContainEqual(expect.objectContaining({ spriteKey: "npc-vasyl-tall" }));
+});
+
+it("keeps five collectible characters and four ambient controllers with unique ids", () => {
+  const ids = [
+    ...CHARACTERS.map((character) => character.id),
+    ...CONTROLLERS.map((controller) => controller.id)
+  ];
+
+  expect(CHARACTERS).toHaveLength(5);
+  expect(CONTROLLERS).toHaveLength(4);
+  expect(new Set(ids)).toHaveLength(ids.length);
 });

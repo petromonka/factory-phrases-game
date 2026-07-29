@@ -8,8 +8,9 @@
     "test": "vitest run",
     "build": "tsc --noEmit && vite build",
     "build:pages": "tsc --noEmit && vite build --base=/factory-phrases-game/",
+    "build:browser-test": "tsc --noEmit && vite build --base=/factory-phrases-game/ --mode browser-test",
     "preview": "vite preview",
-    "test:browser": "npm run build:pages && playwright test"
+    "test:browser": "npm run build:browser-test && playwright test"
   },
   "dependencies": {
     "phaser": "^3.90.0"

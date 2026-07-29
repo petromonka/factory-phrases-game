@@ -1,6 +1,6 @@
 # Factory Phrases Game
 
-A small desktop-browser exploration game set in a factory office. Walk through the connected rooms, speak to the five characters, and discover all five phrases.
+A small browser exploration game set in a factory office. Walk through the connected rooms, speak to the five characters, and discover all five phrases.
 
 ## Requirements
 
@@ -21,10 +21,16 @@ Open the local address printed by Vite in a desktop browser.
 ## Controls and objective
 
 - Move with `W`, `A`, `S`, and `D`, or the arrow keys.
+- On a phone, rotate to landscape and drag the on-screen joystick to move.
+- Release the joystick to stop.
 - Walk close to a character to see their phrase automatically.
 - Walk away to close the dialogue.
 
+Desktop keyboard controls remain available.
+
 The objective is to find every phrase from the five characters in the connected office rooms. Progress is saved in the browser, so returning to the game preserves phrases already found.
+
+The central factory floor contains four sewing lines, each ending at a final-control station and controller. A controller's equipment request is selected on each approach and remains visible until you walk away. These ambient requests do not count toward the five collectible phrases or saved progress.
 
 ## Edit game content
 
@@ -45,14 +51,14 @@ npm run preview
 
 ## Browser smoke test
 
-Install Playwright's Firefox browser once, then run the production-preview smoke in installed Chrome and Playwright Firefox:
+Install Playwright's Firefox and Chromium browsers once, then run the production-preview smoke in installed Chrome, Playwright Firefox, and a touch-enabled Pixel 7 profile:
 
 ```bash
-npx playwright install firefox
+npx playwright install firefox chromium
 npm run test:browser
 ```
 
-The smoke builds with the GitHub Pages base path, starts Vite's production preview at `/factory-phrases-game/`, fails on browser page errors, and opens one real NPC dialogue with keyboard input.
+The smoke builds with the GitHub Pages base path, starts Vite's production preview at `/factory-phrases-game/`, fails on browser page errors, and opens real NPC dialogue with keyboard and touch input.
 
 ## Deploy to GitHub Pages
 

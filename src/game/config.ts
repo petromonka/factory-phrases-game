@@ -1,7 +1,12 @@
 import Phaser from "phaser";
 import { FactoryScene } from "./FactoryScene";
+import { stoppedMovementSource } from "./movement";
+import type { MovementSource } from "./touchController";
 
-export function createGameConfig(parent: string): Phaser.Types.Core.GameConfig {
+export function createGameConfig(
+  parent: string,
+  touchMovement: MovementSource = stoppedMovementSource
+): Phaser.Types.Core.GameConfig {
   return {
     type: Phaser.AUTO,
     parent,
@@ -11,6 +16,11 @@ export function createGameConfig(parent: string): Phaser.Types.Core.GameConfig {
     pixelArt: true,
     physics: { default: "arcade", arcade: { debug: false } },
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-    scene: [FactoryScene]
+    scene: [FactoryScene],
+    callbacks: {
+      preBoot(game) {
+        game.registry.set("touchMovement", touchMovement);
+      }
+    }
   };
 }

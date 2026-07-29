@@ -69,11 +69,23 @@ function reachableCells(map: FactoryMap, start: MapObject, blockedCells = new Se
   return visited;
 }
 
+function cellIsBlocked(map: FactoryMap, column: number, row: number): boolean {
+  const centerX = column * map.tilewidth + map.tilewidth / 2;
+  const centerY = row * map.tileheight + map.tileheight / 2;
+  return (layer(map, "collisions").objects ?? []).some(
+    (collision) =>
+      centerX >= collision.x &&
+      centerX < collision.x + collision.width &&
+      centerY >= collision.y &&
+      centerY < collision.y + collision.height
+  );
+}
+
 it("contains required layers and game objects", () => {
   const map = readMap();
   const layers = new Map(map.layers.map((mapLayer) => [mapLayer.name, mapLayer]));
 
-  expect([...layers.keys()]).toEqual(expect.arrayContaining(["floor", "walls", "furniture", "collisions", "spawn", "npcs", "signs"]));
+  expect([...layers.keys()]).toEqual(expect.arrayContaining(["floor", "walls", "furniture", "collisions", "spawn", "npcs", "signs", "controllers"]));
   expect(layers.get("spawn")?.objects?.map((object) => object.name)).toContain("player-spawn");
   expect(layers.get("npcs")?.objects?.map((object) => object.name).sort()).toEqual(
     ["npc-it", "npc-qm", "npc-security", "npc-sewing", "npc-shifts"].sort()
@@ -184,16 +196,56 @@ it("requires the checkpoint exit to reach the factory interior", () => {
   expect(checkpointSealed).not.toContain("20,24");
 });
 
-it("allows the player spawn to reach every NPC", () => {
+it("contains four exact controller points", () => {
+  const controllers = layer(readMap(), "controllers").objects ?? [];
+
+  expect(controllers).toEqual([
+    expect.objectContaining({ name: "controller-1", type: "controller", x: 744, y: 344 }),
+    expect.objectContaining({ name: "controller-2", type: "controller", x: 744, y: 392 }),
+    expect.objectContaining({ name: "controller-3", type: "controller", x: 744, y: 440 }),
+    expect.objectContaining({ name: "controller-4", type: "controller", x: 744, y: 488 })
+  ]);
+});
+
+it("contains four sewing lines and final-control stations", () => {
+  const collisions = layer(readMap(), "collisions").objects ?? [];
+
+  for (let line = 1; line <= 4; line += 1) {
+    expect(collisions.some((object) => object.name.startsWith(`sewing-line-${line}`))).toBe(true);
+    expect(collisions.some((object) => object.name === `final-control-${line}`)).toBe(true);
+  }
+});
+
+it("keeps sewing-line aisles unblocked and reachable from spawn", () => {
   const map = readMap();
   const spawn = layer(map, "spawn").objects?.find((object) => object.name === "player-spawn");
-  const npcs = layer(map, "npcs").objects ?? [];
+  const aisleSamples = [
+    [19, 21], [43, 22],
+    [19, 24], [43, 25],
+    [19, 27], [43, 28]
+  ];
 
   expect(spawn).toBeDefined();
   const visited = reachableCells(map, spawn!);
-  for (const npc of npcs) {
-    expect(visited, `${npc.name} cannot be reached from player-spawn`).toContain(
-      `${Math.floor(npc.x / map.tilewidth)},${Math.floor(npc.y / map.tileheight)}`
+  for (const [column, row] of aisleSamples) {
+    expect(cellIsBlocked(map, column, row), `aisle tile ${column},${row} is blocked`).toBe(false);
+    expect(visited, `aisle tile ${column},${row} cannot be reached from player-spawn`).toContain(`${column},${row}`);
+  }
+});
+
+it("allows the player spawn to reach every NPC and controller", () => {
+  const map = readMap();
+  const spawn = layer(map, "spawn").objects?.find((object) => object.name === "player-spawn");
+  const gameObjects = [
+    ...(layer(map, "npcs").objects ?? []),
+    ...(layer(map, "controllers").objects ?? [])
+  ];
+
+  expect(spawn).toBeDefined();
+  const visited = reachableCells(map, spawn!);
+  for (const gameObject of gameObjects) {
+    expect(visited, `${gameObject.name} cannot be reached from player-spawn`).toContain(
+      `${Math.floor(gameObject.x / map.tilewidth)},${Math.floor(gameObject.y / map.tileheight)}`
     );
   }
 });

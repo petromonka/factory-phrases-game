@@ -22,11 +22,70 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  overscroll-behavior: none;
 }
 
 #game canvas {
   display: block;
   image-rendering: pixelated;
+  max-width: 100vw;
+  max-height: 100dvh;
+}
+
+#touch-joystick {
+  position: fixed;
+  left: calc(1rem + env(safe-area-inset-left));
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+  display: none;
+  width: 7rem;
+  height: 7rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(247 230 210 / 45%);
+  border-radius: 50%;
+  background: rgb(16 20 17 / 60%);
+  touch-action: none;
+  user-select: none;
+  overscroll-behavior: none;
+  z-index: 20;
+}
+
+#touch-joystick-knob {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: rgb(247 230 210 / 65%);
+}
+
+#touch-joystick[hidden] {
+  display: none !important;
+}
+
+#orientation-hint {
+  position: fixed;
+  top: calc(1rem + env(safe-area-inset-top));
+  left: 50%;
+  display: none;
+  width: min(24rem, calc(100vw - 2rem));
+  margin: 0;
+  color: #f7e6d2;
+  font-weight: 700;
+  text-align: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 20;
+}
+
+@media (pointer: coarse) {
+  #touch-joystick {
+    display: flex;
+  }
+
+  @media (orientation: portrait) {
+    #orientation-hint {
+      display: block;
+    }
+  }
 }
 
 .visually-hidden {
