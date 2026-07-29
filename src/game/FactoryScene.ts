@@ -6,6 +6,8 @@ import { renderFatalError } from "./errorScreen";
 import { proximityDialogueTarget } from "./interaction";
 import { movementVector } from "./movement";
 import { discover, isComplete, ProgressStore } from "./progress";
+import type { MovementSource } from "./touchController";
+import { strongerMovement } from "./touchMovement";
 
 const MAP_KEY = "factory-map";
 const TILESET_KEY = "factory-tiles";
@@ -84,6 +86,7 @@ export class FactoryScene extends Phaser.Scene {
   private player!: Phaser.Physics.Arcade.Sprite;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private wasd!: MovementKeys;
+  private touchMovement!: MovementSource;
   private npcs: NpcTarget[] = [];
   private readonly ambientDialogueState = new AmbientDialogueState();
   private progressStore!: ProgressStore;
@@ -116,6 +119,7 @@ export class FactoryScene extends Phaser.Scene {
     }
 
     try {
+      this.touchMovement = this.registry.get("touchMovement") as MovementSource;
       const map = this.make.tilemap({ key: MAP_KEY });
       const tileset = map.addTilesetImage(TILESET_KEY, TILESET_KEY);
       if (!tileset) {
@@ -248,12 +252,14 @@ export class FactoryScene extends Phaser.Scene {
       return;
     }
 
-    const direction = movementVector({
+    const keyboardDirection = movementVector({
       left: this.cursors.left.isDown || this.wasd.left.isDown,
       right: this.cursors.right.isDown || this.wasd.right.isDown,
       up: this.cursors.up.isDown || this.wasd.up.isDown,
       down: this.cursors.down.isDown || this.wasd.down.isDown
     });
+    const touchDirection = this.touchMovement.current();
+    const direction = strongerMovement(keyboardDirection, touchDirection);
     this.player.setVelocity(direction.x * MOVEMENT_SPEED, direction.y * MOVEMENT_SPEED);
     this.updatePlayerDirection(direction.x, direction.y);
 
