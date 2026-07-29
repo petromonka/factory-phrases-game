@@ -1,6 +1,6 @@
 import { CHARACTERS } from "./characters";
 
-const KNOWN_CHARACTER_IDS = new Set(CHARACTERS.map((character) => character.id));
+const KNOWN_CHARACTER_IDS: ReadonlySet<string> = new Set(CHARACTERS.map((character) => character.id));
 const PROGRESS_KEY = "factory-phrases-progress-v1";
 
 export function parseProgress(raw: string | null): ReadonlySet<string> {
