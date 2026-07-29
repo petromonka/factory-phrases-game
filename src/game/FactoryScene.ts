@@ -127,8 +127,7 @@ export class FactoryScene extends Phaser.Scene {
         }).setOrigin(0.5).setDepth(15);
       }
 
-      const npcColors = ["npc-security", "npc-it", "npc-shifts", "npc-qm", "npc-sewing"];
-      this.npcs = CHARACTERS.flatMap((character, index) => {
+      this.npcs = CHARACTERS.flatMap((character) => {
         const point = npcLayer.objects.find((object) => object.name === character.objectId);
         if (point?.x === undefined || point.y === undefined) {
           console.error(`Skipping ${character.id}: map point ${character.objectId} is missing.`);
@@ -138,7 +137,7 @@ export class FactoryScene extends Phaser.Scene {
         return [
           {
             character,
-            sprite: this.add.sprite(point.x, point.y, npcColors[index]).setDepth(20)
+            sprite: this.add.sprite(point.x, point.y, character.spriteKey).setOrigin(0.5, 1).setDepth(20)
           }
         ];
       });
@@ -239,7 +238,6 @@ export class FactoryScene extends Phaser.Scene {
   private createNpcTextures(): void {
     const variants = [
       { key: "npc-security", shirt: 0x4e6071, accent: 0xc3cfda },
-      { key: "npc-it", shirt: 0x3c7b55, accent: 0x95e0ad },
       { key: "npc-shifts", shirt: 0x9b7a28, accent: 0xffd76e },
       { key: "npc-qm", shirt: 0x375e9f, accent: 0x77b9ff },
       { key: "npc-sewing", shirt: 0xa4542d, accent: 0xffa465 }
@@ -260,6 +258,20 @@ export class FactoryScene extends Phaser.Scene {
       graphics.generateTexture(variant.key, 16, 20);
       graphics.destroy();
     }
+
+    if (this.textures.exists("npc-vasyl-tall")) {
+      return;
+    }
+
+    const graphics = this.make.graphics({ x: 0, y: 0 }, false);
+    graphics.fillStyle(0x231b18).fillRect(4, 1, 8, 3);
+    graphics.fillStyle(0xe0a675).fillRect(4, 3, 8, 6);
+    graphics.fillStyle(0x1e1815).fillRect(6, 5, 1, 1).fillRect(9, 5, 1, 1);
+    graphics.fillStyle(0x3c7b55).fillRect(3, 9, 10, 14);
+    graphics.fillStyle(0x95e0ad).fillRect(5, 11, 6, 3);
+    graphics.fillStyle(0x191919).fillRect(3, 23, 4, 9).fillRect(9, 23, 4, 9);
+    graphics.generateTexture("npc-vasyl-tall", 16, 32);
+    graphics.destroy();
   }
 
   private createInterface(): void {
