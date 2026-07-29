@@ -4,12 +4,13 @@ export interface InteractionCandidate {
   y: number;
 }
 
+const INTERACTION_RADIUS = 56;
+
 export function nearestInteractable(
   origin: { x: number; y: number },
-  candidates: readonly InteractionCandidate[],
-  maxDistance: number
+  candidates: readonly InteractionCandidate[]
 ): InteractionCandidate | undefined {
-  const maxDistanceSquared = maxDistance ** 2;
+  const maxDistanceSquared = INTERACTION_RADIUS ** 2;
 
   return candidates
     .map((candidate) => ({

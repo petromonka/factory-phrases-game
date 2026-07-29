@@ -8,7 +8,6 @@ import { discover, isComplete, ProgressStore } from "./progress";
 const MAP_KEY = "factory-map";
 const TILESET_KEY = "factory-tiles";
 const MOVEMENT_SPEED = 160;
-const INTERACTION_RADIUS = 64;
 
 type Character = (typeof CHARACTERS)[number];
 
@@ -154,6 +153,7 @@ export class FactoryScene extends Phaser.Scene {
         .startFollow(this.player, true);
 
       this.ready = true;
+      this.updateStatusMirror("ready", "Гра готова");
     } catch (error) {
       console.error(error);
       this.showFatalError("Не вдалося створити карту заводу.");
@@ -173,8 +173,7 @@ export class FactoryScene extends Phaser.Scene {
         id: character.id,
         x: sprite.x,
         y: sprite.y
-      })),
-      INTERACTION_RADIUS
+      }))
     );
     const target = this.npcs.find(({ character }) => character.id === nearest?.id);
 
@@ -320,6 +319,7 @@ export class FactoryScene extends Phaser.Scene {
     this.dialoguePanel.setVisible(true);
     this.dialogueName.setVisible(true);
     this.dialogueBody.setVisible(true);
+    this.updateStatusMirror("dialogue", `${target.character.name}: ${target.character.phrase}`, target.character.id);
 
     const nextProgress = discover(this.progress, target.character.id);
     if (nextProgress.size === this.progress.size) {
@@ -342,6 +342,7 @@ export class FactoryScene extends Phaser.Scene {
     this.dialoguePanel.setVisible(false);
     this.dialogueName.setVisible(false);
     this.dialogueBody.setVisible(false);
+    this.updateStatusMirror("ready", "Гра готова");
   }
 
   private updateCounter(): void {
@@ -370,9 +371,25 @@ export class FactoryScene extends Phaser.Scene {
 
   private showFatalError(message: string): void {
     this.ready = false;
+    this.updateStatusMirror("fatal", message);
     const container = document.getElementById("game");
     if (container) {
       renderFatalError(container, message);
     }
+  }
+
+  private updateStatusMirror(state: "ready" | "dialogue" | "fatal", text: string, characterId?: string): void {
+    const status = document.getElementById("game-status");
+    if (!status) {
+      return;
+    }
+
+    status.dataset.gameState = state;
+    if (characterId) {
+      status.dataset.characterId = characterId;
+    } else {
+      delete status.dataset.characterId;
+    }
+    status.textContent = text;
   }
 }

@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { PNG } from "pngjs";
 import { expect, it } from "vitest";
 
 type MapObject = { name: string; x: number; y: number; width: number; height: number };
@@ -42,9 +43,8 @@ it("uses the agreed 60 by 34 grid and generated original tilesheet", () => {
   expect(map.tilesets).toEqual([
     expect.objectContaining({ columns: 4, image: "../tiles/factory-tiles.png", imagewidth: 64, imageheight: 64 })
   ]);
-  expect(readFileSync("public/assets/tiles/factory-tiles.png").subarray(0, 8)).toEqual(
-    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])
-  );
+  const tilesheet = PNG.sync.read(readFileSync("public/assets/tiles/factory-tiles.png"));
+  expect([tilesheet.width, tilesheet.height]).toEqual([64, 64]);
 });
 
 it("keeps every two-tile doorway clear of collision rectangles", () => {
@@ -52,8 +52,41 @@ it("keeps every two-tile doorway clear of collision rectangles", () => {
   const wallTiles = layer(map, "walls").data ?? [];
   const collisions = layer(map, "collisions").objects ?? [];
   const doorIndexes = wallTiles.flatMap((tile, index) => (tile === 5 ? [index] : []));
+  const remainingDoorIndexes = new Set(doorIndexes);
+  const doorComponents: number[][] = [];
 
-  expect(doorIndexes.length).toBeGreaterThanOrEqual(12);
+  while (remainingDoorIndexes.size > 0) {
+    const start = remainingDoorIndexes.values().next().value;
+    if (start === undefined) break;
+
+    const component: number[] = [];
+    const queue = [start];
+    remainingDoorIndexes.delete(start);
+    while (queue.length > 0) {
+      const current = queue.shift();
+      if (current === undefined) break;
+      component.push(current);
+
+      const column = current % map.width;
+      const row = Math.floor(current / map.width);
+      for (const [nextColumn, nextRow] of [[column - 1, row], [column + 1, row], [column, row - 1], [column, row + 1]]) {
+        const next = nextRow * map.width + nextColumn;
+        if (
+          nextColumn >= 0 &&
+          nextColumn < map.width &&
+          nextRow >= 0 &&
+          nextRow < map.height &&
+          remainingDoorIndexes.delete(next)
+        ) {
+          queue.push(next);
+        }
+      }
+    }
+    doorComponents.push(component);
+  }
+
+  expect(doorComponents).toHaveLength(6);
+  expect(doorComponents.every((component) => component.length === 2)).toBe(true);
   for (const index of doorIndexes) {
     const x = (index % map.width) * map.tilewidth;
     const y = Math.floor(index / map.width) * map.tileheight;

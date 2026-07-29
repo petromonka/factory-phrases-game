@@ -43,6 +43,17 @@ npm run preview
 
 `npm run preview` serves the generated `dist/` directory. The build automatically uses `/factory-phrases-game/` as its asset base path in GitHub Actions and `/` during local development.
 
+## Browser smoke test
+
+Install Playwright's Firefox browser once, then run the production-preview smoke in installed Chrome and Playwright Firefox:
+
+```bash
+npx playwright install firefox
+npm run test:browser
+```
+
+The smoke builds with the GitHub Pages base path, starts Vite's production preview at `/factory-phrases-game/`, fails on browser page errors, and opens one real NPC dialogue with keyboard input.
+
 ## Deploy to GitHub Pages
 
 The included workflow tests and builds the project on pushes to `main`, then deploys the generated `dist/` artifact. Before the first deployment, enable it in the repository: **Settings** → **Pages** → **Build and deployment** → select **GitHub Actions** as the source. You can also start the workflow manually from the Actions tab.
