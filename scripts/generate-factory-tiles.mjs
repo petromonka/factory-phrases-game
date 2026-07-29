@@ -165,13 +165,18 @@ function createFactoryMap() {
   addFurniture("sewing-boxes", 48, 4, 1, 2, 9);
   addFurniture("entry-desk", 3, 21, 2, 1, 6);
   addFurniture("entry-cabinet", 13, 20, 1, 3, 8);
-  addFurniture("production-machine-a", 20, 20, 3, 2, 11);
-  addFurniture("production-machine-b", 28, 20, 3, 2, 11);
-  addFurniture("production-machine-c", 36, 20, 3, 2, 11);
-  addFurniture("production-machine-d", 44, 20, 3, 2, 11);
-  addFurniture("production-machine-e", 24, 26, 3, 2, 11);
-  addFurniture("production-machine-f", 34, 26, 3, 2, 11);
-  addFurniture("production-supplies", 48, 27, 2, 2, 9);
+  const sewingLines = [
+    { id: 1, y: 20, controllerX: 744, controllerY: 344 },
+    { id: 2, y: 23, controllerX: 744, controllerY: 392 },
+    { id: 3, y: 26, controllerX: 744, controllerY: 440 },
+    { id: 4, y: 29, controllerX: 744, controllerY: 488 }
+  ];
+  for (const { id, y } of sewingLines) {
+    for (let column = 19; column <= 43; column += 3) {
+      addFurniture(`sewing-line-${id}-machine-${column}`, column, y, 2, 1, 11);
+    }
+    addFurniture(`final-control-${id}`, 46, y, 3, 1, 6);
+  }
 
   const point = (name, x, y, type) => ({ id: objectId++, name, type, x, y, width: 0, height: 0, rotation: 0, visible: true, point: true });
   const sign = (name, text, x, y) => ({
@@ -188,6 +193,9 @@ function createFactoryMap() {
     properties: [{ name: "text", type: "string", value: text }]
   });
   const spawn = [point("player-spawn", 136, 472, "spawn")];
+  const controllers = sewingLines.map(({ id, controllerX, controllerY }) =>
+    point(`controller-${id}`, controllerX, controllerY, "controller")
+  );
   const npcs = [
     point("npc-security", 88, 392, "npc"),
     point("npc-it", 216, 120, "npc"),
@@ -216,9 +224,10 @@ function createFactoryMap() {
       objectLayer(4, "collisions", collisions),
       objectLayer(5, "spawn", spawn),
       objectLayer(6, "npcs", npcs),
-      objectLayer(7, "signs", signs)
+      objectLayer(7, "signs", signs),
+      objectLayer(8, "controllers", controllers)
     ],
-    nextlayerid: 8,
+    nextlayerid: 9,
     nextobjectid: objectId,
     orientation: "orthogonal",
     renderorder: "right-down",
