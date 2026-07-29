@@ -28,3 +28,28 @@ body {
   display: block;
   image-rendering: pixelated;
 }
+
+#game.fatal-error {
+  box-sizing: border-box;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 2rem;
+  color: #f7e6d2;
+  text-align: center;
+}
+
+.fatal-error h1,
+.fatal-error p {
+  margin: 0;
+}
+
+.fatal-error h1 {
+  color: #ffb36b;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.fatal-error p {
+  max-width: 36rem;
+  font-size: 1rem;
+  line-height: 1.5;
+}
