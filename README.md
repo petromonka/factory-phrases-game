@@ -26,6 +26,8 @@ Open the local address printed by Vite in a desktop browser.
 
 The objective is to find every phrase from the five characters in the connected office rooms. Progress is saved in the browser, so returning to the game preserves phrases already found.
 
+The central factory floor contains four sewing lines, each ending at a final-control station and controller. A controller's equipment request is selected on each approach and remains visible until you walk away. These ambient requests do not count toward the five collectible phrases or saved progress.
+
 ## Edit game content
 
 Character names, rooms, phrases, and their map object IDs live in [`src/game/characters.ts`](src/game/characters.ts). Keep each `objectId` aligned with the matching point object in the map's `npcs` object layer.
