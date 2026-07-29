@@ -150,14 +150,11 @@ function createFactoryMap() {
   addHorizontalWall("outer-bottom", 0, mapHeight - 1, mapWidth);
   addVerticalWall("outer-left", 0, 0, mapHeight);
   addVerticalWall("outer-right", mapWidth - 1, 0, mapHeight);
-  drawUpperOffice("gatehouse", 2, 2, 7, 11, 4);
   drawUpperOffice("it", 10, 2, 7, 11, 12);
   drawUpperOffice("shifts", 18, 2, 9, 11, 21);
   drawUpperOffice("qm", 29, 2, 9, 11, 32);
   drawUpperOffice("sewing", 40, 2, 11, 11, 44);
   drawEntry();
-  addFurniture("gatehouse-desk", 3, 4, 2, 1, 6);
-  addFurniture("gatehouse-cabinet", 6, 3, 1, 2, 8);
   addFurniture("it-desk", 11, 4, 2, 1, 6);
   addFurniture("it-cabinet", 14, 3, 1, 3, 8);
   addFurniture("shifts-desk", 19, 4, 2, 1, 6);
@@ -177,13 +174,34 @@ function createFactoryMap() {
   addFurniture("production-supplies", 48, 27, 2, 2, 9);
 
   const point = (name, x, y, type) => ({ id: objectId++, name, type, x, y, width: 0, height: 0, rotation: 0, visible: true, point: true });
+  const sign = (name, text, x, y) => ({
+    id: objectId++,
+    name,
+    type: "sign",
+    x,
+    y,
+    width: 0,
+    height: 0,
+    rotation: 0,
+    visible: true,
+    point: true,
+    properties: [{ name: "text", type: "string", value: text }]
+  });
   const spawn = [point("player-spawn", 136, 472, "spawn")];
   const npcs = [
-    point("npc-security", 88, 120, "npc"),
+    point("npc-security", 88, 392, "npc"),
     point("npc-it", 216, 120, "npc"),
     point("npc-shifts", 360, 120, "npc"),
     point("npc-qm", 536, 120, "npc"),
     point("npc-sewing", 728, 120, "npc")
+  ];
+  const signs = [
+    sign("factory-name", "Блядер", 144, 488),
+    sign("checkpoint", "KPP", 144, 320),
+    sign("it-office", "IT", 208, 216),
+    sign("shifts-office", "Відділ змін", 360, 216),
+    sign("qm-office", "QM", 536, 216),
+    sign("sewing-storage", "Склад швейного цеху", 728, 216)
   ];
   const tileLayer = (id, name, data) => ({ id, name, type: "tilelayer", x: 0, y: 0, width: mapWidth, height: mapHeight, opacity: 1, visible: true, data });
   const objectLayer = (id, name, objects) => ({ id, name, type: "objectgroup", x: 0, y: 0, opacity: 1, visible: true, draworder: "topdown", objects });
@@ -197,9 +215,10 @@ function createFactoryMap() {
       tileLayer(3, "furniture", furniture),
       objectLayer(4, "collisions", collisions),
       objectLayer(5, "spawn", spawn),
-      objectLayer(6, "npcs", npcs)
+      objectLayer(6, "npcs", npcs),
+      objectLayer(7, "signs", signs)
     ],
-    nextlayerid: 7,
+    nextlayerid: 8,
     nextobjectid: objectId,
     orientation: "orthogonal",
     renderorder: "right-down",
