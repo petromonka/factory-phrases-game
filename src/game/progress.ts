@@ -26,11 +26,14 @@ export function isComplete(progress: ReadonlySet<string>): boolean {
 
 export class ProgressStore {
   private memory: ReadonlySet<string> = new Set();
+  private storageIsUsable: boolean;
 
-  public constructor(private readonly storage: Storage | undefined) {}
+  public constructor(private readonly storage: Storage | undefined) {
+    this.storageIsUsable = storage !== undefined;
+  }
 
   public load(): ReadonlySet<string> {
-    if (!this.storage) {
+    if (!this.storage || !this.storageIsUsable) {
       return this.memory;
     }
 
@@ -39,6 +42,7 @@ export class ProgressStore {
       this.memory = progress;
       return progress;
     } catch {
+      this.storageIsUsable = false;
       return this.memory;
     }
   }
@@ -49,6 +53,7 @@ export class ProgressStore {
     try {
       this.storage?.setItem(PROGRESS_KEY, JSON.stringify([...progress]));
     } catch {
+      this.storageIsUsable = false;
       // Storage access can be blocked by browser privacy settings.
     }
   }

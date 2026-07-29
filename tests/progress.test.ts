@@ -26,3 +26,21 @@ it("keeps progress in memory when storage is unavailable", () => {
 
   expect([...store.load()]).toEqual(["security-serhii"]);
 });
+
+it("keeps progress in memory after a storage write failure", () => {
+  const unavailableStorage: Storage = {
+    clear: () => undefined,
+    getItem: () => null,
+    key: () => null,
+    length: 0,
+    removeItem: () => undefined,
+    setItem: () => {
+      throw new Error("storage blocked");
+    }
+  };
+  const store = new ProgressStore(unavailableStorage);
+
+  store.save(new Set(["security-serhii"]));
+
+  expect([...store.load()]).toEqual(["security-serhii"]);
+});
