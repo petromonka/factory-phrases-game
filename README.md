@@ -21,8 +21,8 @@ Open the local address printed by Vite in a desktop browser.
 ## Controls and objective
 
 - Move with `W`, `A`, `S`, and `D`, or the arrow keys.
-- Stand close to a character and press `E` to talk.
-- Close an open dialogue with `E`, `Space`, or a pointer click.
+- Walk close to a character to see their phrase automatically.
+- Walk away to close the dialogue.
 
 The objective is to find every phrase from the five characters in the connected office rooms. Progress is saved in the browser, so returning to the game preserves phrases already found.
 
@@ -30,7 +30,7 @@ The objective is to find every phrase from the five characters in the connected 
 
 Character names, rooms, phrases, and their map object IDs live in [`src/game/characters.ts`](src/game/characters.ts). Keep each `objectId` aligned with the matching point object in the map's `npcs` object layer.
 
-The map is a Tiled JSON map at [`public/assets/maps/factory.json`](public/assets/maps/factory.json). Open it in [Tiled](https://www.mapeditor.org/), edit the visible tile layers or object layers, and save it back in JSON format. Preserve the required `floor`, `walls`, and `furniture` tile layers, plus the `collisions`, `spawn`, and `npcs` object layers; the game expects a `player-spawn` point and one NPC point for every character.
+The map is a Tiled JSON map at [`public/assets/maps/factory.json`](public/assets/maps/factory.json). Open it in [Tiled](https://www.mapeditor.org/), edit the visible tile layers or object layers, and save it back in JSON format. Preserve the required `floor`, `walls`, and `furniture` tile layers, plus the `collisions`, `spawn`, `npcs`, and `signs` object layers; the game expects a `player-spawn` point, one NPC point for every character, and each sign's visible copy in a string property named `text`.
 
 ## Production build and preview
 
