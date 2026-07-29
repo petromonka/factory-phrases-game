@@ -1,5 +1,7 @@
 import Phaser from "phaser";
 import { CHARACTERS } from "./characters";
+import { AmbientDialogueState } from "./controllerDialogue";
+import { CONTROLLERS } from "./controllers";
 import { renderFatalError } from "./errorScreen";
 import { proximityDialogueTarget } from "./interaction";
 import { movementVector } from "./movement";
@@ -9,7 +11,6 @@ const MAP_KEY = "factory-map";
 const TILESET_KEY = "factory-tiles";
 const MOVEMENT_SPEED = 160;
 
-type Character = (typeof CHARACTERS)[number];
 type TiledProperty = { name: string; value: unknown };
 
 function getProperty(object: Phaser.Types.Tilemaps.TiledObject, name: string): unknown {
@@ -17,9 +18,57 @@ function getProperty(object: Phaser.Types.Tilemaps.TiledObject, name: string): u
   return properties?.find((property) => property.name === name)?.value;
 }
 
-interface Npc {
-  character: Character;
-  sprite: Phaser.GameObjects.Sprite;
+export type NpcTarget =
+  | { kind: "collectible"; id: string; name: string; phrase: string; sprite: Phaser.GameObjects.Sprite }
+  | { kind: "ambient"; id: string; name: string; sprite: Phaser.GameObjects.Sprite };
+
+export function isCollectibleTarget(
+  target: { kind: "collectible" | "ambient" }
+): target is { kind: "collectible" } {
+  return target.kind === "collectible";
+}
+
+export function hasFinitePointCoordinates(
+  point: { x?: unknown; y?: unknown } | undefined
+): point is { x: number; y: number } {
+  return (
+    typeof point?.x === "number" &&
+    Number.isFinite(point.x) &&
+    typeof point.y === "number" &&
+    Number.isFinite(point.y)
+  );
+}
+
+interface DialogueTransitionActions {
+  close(): void;
+  openCollectible(target: Extract<NpcTarget, { kind: "collectible" }>): void;
+  openAmbient(target: Extract<NpcTarget, { kind: "ambient" }>, request: string): void;
+}
+
+export function transitionNpcTarget(
+  activeTargetId: string | undefined,
+  nextTarget: NpcTarget | undefined,
+  ambientState: AmbientDialogueState,
+  actions: DialogueTransitionActions
+): string | undefined {
+  if (nextTarget?.id === activeTargetId) {
+    return activeTargetId;
+  }
+
+  if (activeTargetId) {
+    actions.close();
+  }
+  ambientState.leave();
+
+  if (nextTarget) {
+    if (isCollectibleTarget(nextTarget)) {
+      actions.openCollectible(nextTarget);
+    } else {
+      actions.openAmbient(nextTarget, ambientState.enter(nextTarget.id).request);
+    }
+  }
+
+  return nextTarget?.id;
 }
 
 interface MovementKeys {
@@ -35,7 +84,8 @@ export class FactoryScene extends Phaser.Scene {
   private player!: Phaser.Physics.Arcade.Sprite;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private wasd!: MovementKeys;
-  private npcs: Npc[] = [];
+  private npcs: NpcTarget[] = [];
+  private readonly ambientDialogueState = new AmbientDialogueState();
   private progressStore!: ProgressStore;
   private progress: ReadonlySet<string> = new Set();
   private activeCharacterId?: string;
@@ -81,9 +131,10 @@ export class FactoryScene extends Phaser.Scene {
       const collisionLayer = map.getObjectLayer("collisions");
       const spawnLayer = map.getObjectLayer("spawn");
       const npcLayer = map.getObjectLayer("npcs");
+      const controllerLayer = map.getObjectLayer("controllers");
       const signLayer = map.getObjectLayer("signs");
       const spawnPoint = spawnLayer?.objects.find((object) => object.name === "player-spawn");
-      if (!collisionLayer || !spawnPoint || !npcLayer || !signLayer) {
+      if (!collisionLayer || !spawnPoint || !npcLayer || !controllerLayer || !signLayer) {
         throw new Error("The factory object layers are incomplete.");
       }
 
@@ -127,20 +178,40 @@ export class FactoryScene extends Phaser.Scene {
         }).setOrigin(0.5).setDepth(15);
       }
 
-      this.npcs = CHARACTERS.flatMap((character) => {
+      const collectibleNpcs: NpcTarget[] = CHARACTERS.flatMap((character) => {
         const point = npcLayer.objects.find((object) => object.name === character.objectId);
-        if (point?.x === undefined || point.y === undefined) {
-          console.error(`Skipping ${character.id}: map point ${character.objectId} is missing.`);
+        if (!hasFinitePointCoordinates(point)) {
+          console.error(`Skipping ${character.id}: map point ${character.objectId} is missing or malformed.`);
           return [];
         }
 
         return [
           {
-            character,
+            kind: "collectible" as const,
+            id: character.id,
+            name: character.name,
+            phrase: character.phrase,
             sprite: this.add.sprite(point.x, point.y, character.spriteKey).setOrigin(0.5, 1).setDepth(20)
           }
         ];
       });
+      const ambientNpcs: NpcTarget[] = CONTROLLERS.flatMap((controller) => {
+        const point = controllerLayer.objects.find((object) => object.name === controller.objectId);
+        if (!hasFinitePointCoordinates(point)) {
+          console.error(`Skipping ${controller.id}: map point ${controller.objectId} is missing or malformed.`);
+          return [];
+        }
+
+        return [
+          {
+            kind: "ambient" as const,
+            id: controller.id,
+            name: controller.name,
+            sprite: this.add.sprite(point.x, point.y, "npc-controller").setOrigin(0.5, 1).setDepth(20)
+          }
+        ];
+      });
+      this.npcs = [...collectibleNpcs, ...ambientNpcs];
 
       const keyboard = this.input.keyboard;
       if (!keyboard) {
@@ -188,21 +259,24 @@ export class FactoryScene extends Phaser.Scene {
 
     const targetId = proximityDialogueTarget(
       this.player,
-      this.npcs.map(({ character, sprite }) => ({
-        id: character.id,
+      this.npcs.map(({ id, sprite }) => ({
+        id,
         x: sprite.x,
         y: sprite.y
       }))
     );
     if (targetId !== this.activeCharacterId) {
-      if (this.activeCharacterId) {
-        this.closeDialogue();
-      }
-      this.activeCharacterId = targetId;
-      const target = this.npcs.find(({ character }) => character.id === targetId);
-      if (target) {
-        this.openDialogue(target);
-      }
+      const target = this.npcs.find(({ id }) => id === targetId);
+      this.activeCharacterId = transitionNpcTarget(
+        this.activeCharacterId,
+        target,
+        this.ambientDialogueState,
+        {
+          close: () => this.closeDialogue(),
+          openCollectible: (collectible) => this.openDialogue(collectible),
+          openAmbient: (ambient, request) => this.openAmbientDialogue(ambient, request)
+        }
+      );
     }
   }
 
@@ -240,7 +314,8 @@ export class FactoryScene extends Phaser.Scene {
       { key: "npc-security", shirt: 0x4e6071, accent: 0xc3cfda },
       { key: "npc-shifts", shirt: 0x9b7a28, accent: 0xffd76e },
       { key: "npc-qm", shirt: 0x375e9f, accent: 0x77b9ff },
-      { key: "npc-sewing", shirt: 0xa4542d, accent: 0xffa465 }
+      { key: "npc-sewing", shirt: 0xa4542d, accent: 0xffa465 },
+      { key: "npc-controller", shirt: 0xe06b23, accent: 0xfff06a }
     ];
 
     for (const variant of variants) {
@@ -321,15 +396,15 @@ export class FactoryScene extends Phaser.Scene {
       .setVisible(false);
   }
 
-  private openDialogue(target: Npc): void {
-    this.dialogueName.setText(target.character.name);
-    this.dialogueBody.setText(target.character.phrase);
+  private openDialogue(target: Extract<NpcTarget, { kind: "collectible" }>): void {
+    this.dialogueName.setText(target.name);
+    this.dialogueBody.setText(target.phrase);
     this.dialoguePanel.setVisible(true);
     this.dialogueName.setVisible(true);
     this.dialogueBody.setVisible(true);
-    this.updateStatusMirror("dialogue", `${target.character.name}: ${target.character.phrase}`, target.character.id);
+    this.updateStatusMirror("dialogue", `${target.name}: ${target.phrase}`, target.id);
 
-    const nextProgress = discover(this.progress, target.character.id);
+    const nextProgress = discover(this.progress, target.id);
     if (nextProgress.size === this.progress.size) {
       return;
     }
@@ -343,6 +418,15 @@ export class FactoryScene extends Phaser.Scene {
       this.completionText.setVisible(true);
       this.time.delayedCall(6000, () => this.completionText.setVisible(false));
     }
+  }
+
+  private openAmbientDialogue(target: Extract<NpcTarget, { kind: "ambient" }>, request: string): void {
+    this.dialogueName.setText(target.name);
+    this.dialogueBody.setText(request);
+    this.dialoguePanel.setVisible(true);
+    this.dialogueName.setVisible(true);
+    this.dialogueBody.setVisible(true);
+    this.updateStatusMirror("dialogue", `${target.name}: ${request}`, target.id);
   }
 
   private closeDialogue(): void {
