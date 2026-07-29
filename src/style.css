@@ -1,0 +1,29 @@
+:root {
+  color-scheme: dark;
+  background: #101411;
+  font-family: system-ui, sans-serif;
+}
+
+html,
+body,
+#game {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  min-height: 100vh;
+  background: #101411;
+}
+
+#game {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#game canvas {
+  display: block;
+  image-rendering: pixelated;
+}
