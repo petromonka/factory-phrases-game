@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { CHARACTERS } from "./characters";
 import { renderFatalError } from "./errorScreen";
-import { nearestInteractable } from "./interaction";
+import { proximityDialogueTarget } from "./interaction";
 import { movementVector } from "./movement";
 import { discover, isComplete, ProgressStore } from "./progress";
 
@@ -35,15 +35,12 @@ export class FactoryScene extends Phaser.Scene {
   private player!: Phaser.Physics.Arcade.Sprite;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private wasd!: MovementKeys;
-  private interactKey!: Phaser.Input.Keyboard.Key;
-  private spaceKey!: Phaser.Input.Keyboard.Key;
   private npcs: Npc[] = [];
   private progressStore!: ProgressStore;
   private progress: ReadonlySet<string> = new Set();
-  private dialogueOpen = false;
+  private activeCharacterId?: string;
   private completionShown = false;
   private counterText!: Phaser.GameObjects.Text;
-  private promptText!: Phaser.GameObjects.Text;
   private dialoguePanel!: Phaser.GameObjects.Rectangle;
   private dialogueName!: Phaser.GameObjects.Text;
   private dialogueBody!: Phaser.GameObjects.Text;
@@ -158,20 +155,11 @@ export class FactoryScene extends Phaser.Scene {
         left: Phaser.Input.Keyboard.KeyCodes.A,
         right: Phaser.Input.Keyboard.KeyCodes.D
       }) as MovementKeys;
-      this.interactKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
-      this.spaceKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-
       this.createInterface();
       this.progressStore = new ProgressStore(this.getStorage());
       this.progress = this.progressStore.load();
       this.completionShown = isComplete(this.progress);
       this.updateCounter();
-
-      this.input.on("pointerdown", () => {
-        if (this.dialogueOpen) {
-          this.closeDialogue();
-        }
-      });
 
       this.cameras.main
         .setBounds(0, 0, map.widthInPixels, map.heightInPixels)
@@ -190,28 +178,6 @@ export class FactoryScene extends Phaser.Scene {
       return;
     }
 
-    const interactPressed = Phaser.Input.Keyboard.JustDown(this.interactKey);
-    const spacePressed = Phaser.Input.Keyboard.JustDown(this.spaceKey);
-    const nearest = nearestInteractable(
-      this.player,
-      this.npcs.map(({ character, sprite }) => ({
-        id: character.id,
-        x: sprite.x,
-        y: sprite.y
-      }))
-    );
-    const target = this.npcs.find(({ character }) => character.id === nearest?.id);
-
-    this.promptText.setVisible(!this.dialogueOpen && target !== undefined);
-
-    if (this.dialogueOpen) {
-      this.player.setVelocity(0, 0);
-      if (interactPressed || spacePressed) {
-        this.closeDialogue();
-      }
-      return;
-    }
-
     const direction = movementVector({
       left: this.cursors.left.isDown || this.wasd.left.isDown,
       right: this.cursors.right.isDown || this.wasd.right.isDown,
@@ -221,8 +187,23 @@ export class FactoryScene extends Phaser.Scene {
     this.player.setVelocity(direction.x * MOVEMENT_SPEED, direction.y * MOVEMENT_SPEED);
     this.updatePlayerDirection(direction.x, direction.y);
 
-    if (interactPressed && target) {
-      this.openDialogue(target);
+    const targetId = proximityDialogueTarget(
+      this.player,
+      this.npcs.map(({ character, sprite }) => ({
+        id: character.id,
+        x: sprite.x,
+        y: sprite.y
+      }))
+    );
+    if (targetId !== this.activeCharacterId) {
+      if (this.activeCharacterId) {
+        this.closeDialogue();
+      }
+      this.activeCharacterId = targetId;
+      const target = this.npcs.find(({ character }) => character.id === targetId);
+      if (target) {
+        this.openDialogue(target);
+      }
     }
   }
 
@@ -293,13 +274,6 @@ export class FactoryScene extends Phaser.Scene {
       .text(20, 18, "", { ...fixedText, fontSize: "20px" })
       .setDepth(1000)
       .setScrollFactor(0);
-    this.promptText = this.add
-      .text(480, 474, "E — поговорити", { ...fixedText, fontSize: "20px" })
-      .setDepth(1000)
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setVisible(false);
-
     this.dialoguePanel = this.add
       .rectangle(480, 450, 880, 146, 0x151b18, 0.96)
       .setDepth(1000)
@@ -336,9 +310,6 @@ export class FactoryScene extends Phaser.Scene {
   }
 
   private openDialogue(target: Npc): void {
-    this.dialogueOpen = true;
-    this.player.setVelocity(0, 0);
-    this.promptText.setVisible(false);
     this.dialogueName.setText(target.character.name);
     this.dialogueBody.setText(target.character.phrase);
     this.dialoguePanel.setVisible(true);
@@ -363,7 +334,6 @@ export class FactoryScene extends Phaser.Scene {
   }
 
   private closeDialogue(): void {
-    this.dialogueOpen = false;
     this.dialoguePanel.setVisible(false);
     this.dialogueName.setVisible(false);
     this.dialogueBody.setVisible(false);
