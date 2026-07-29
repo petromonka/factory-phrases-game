@@ -20,3 +20,10 @@ export function nearestInteractable(
     .filter(({ distanceSquared }) => distanceSquared <= maxDistanceSquared)
     .sort((left, right) => left.distanceSquared - right.distanceSquared)[0]?.candidate;
 }
+
+export function proximityDialogueTarget(
+  origin: { x: number; y: number },
+  candidates: readonly InteractionCandidate[]
+): string | undefined {
+  return nearestInteractable(origin, candidates)?.id;
+}
