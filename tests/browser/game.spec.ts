@@ -1,56 +1,17 @@
 import { expect, test, type Page } from "@playwright/test";
 
-type MovementKey = "a" | "d" | "s" | "w";
-
-const movementKeyData: Record<MovementKey, { code: string; keyCode: number }> = {
-  a: { code: "KeyA", keyCode: 65 },
-  d: { code: "KeyD", keyCode: 68 },
-  s: { code: "KeyS", keyCode: 83 },
-  w: { code: "KeyW", keyCode: 87 }
-};
-
-let releaseSequence = 0;
-
-async function pressForBrowserTime(page: Page, key: MovementKey, duration: number): Promise<void> {
-  const releaseToken = `${key}-${releaseSequence++}`;
-  const { code, keyCode } = movementKeyData[key];
-
-  await page.evaluate(
-    ({ code, duration, key, keyCode, releaseToken }) => {
-      const releaseOnKeyDown = (event: KeyboardEvent): void => {
-        if (event.code !== code) {
-          return;
-        }
-
-        window.removeEventListener("keydown", releaseOnKeyDown);
-        window.setTimeout(() => {
-          window.dispatchEvent(new KeyboardEvent("keyup", {
-            bubbles: true,
-            cancelable: true,
-            code,
-            key,
-            keyCode,
-            which: keyCode
-          }));
-          document.documentElement.dataset.testKeyRelease = releaseToken;
-        }, duration);
-      };
-
-      window.addEventListener("keydown", releaseOnKeyDown);
-    },
-    { code, duration, key, keyCode, releaseToken }
+async function positionPlayerNearController(page: Page): Promise<void> {
+  await page.waitForFunction(
+    () => typeof (window as typeof window & {
+      __factoryTestPositionPlayer?: unknown;
+    }).__factoryTestPositionPlayer === "function"
   );
-
-  await page.keyboard.down(key);
-  try {
-    await page.waitForFunction(
-      (token) => document.documentElement.dataset.testKeyRelease === token,
-      releaseToken,
-      { timeout: duration + 2_000 }
-    );
-  } finally {
-    await page.keyboard.up(key);
-  }
+  await page.evaluate(() => {
+    const positionPlayer = (window as typeof window & {
+      __factoryTestPositionPlayer: (x: number, y: number) => void;
+    }).__factoryTestPositionPlayer;
+    positionPlayer(744, 280);
+  });
 }
 
 test("opens and closes guard dialogue from proximity without E", async ({ page }) => {
@@ -88,12 +49,7 @@ test("opens controller dialogue again after leaving without changing collectible
   const status = page.getByRole("status");
   await expect(status).toHaveAttribute("data-game-state", "ready");
 
-  await pressForBrowserTime(page, "d", 700);
-  await pressForBrowserTime(page, "w", 1_200);
-  await pressForBrowserTime(page, "a", 520);
-  await pressForBrowserTime(page, "w", 300);
-  await pressForBrowserTime(page, "d", 5_200);
-  await pressForBrowserTime(page, "a", 1_220);
+  await positionPlayerNearController(page);
   await page.keyboard.down("s");
   try {
     await expect(status).toHaveAttribute("data-game-state", "dialogue", { timeout: 5_000 });
