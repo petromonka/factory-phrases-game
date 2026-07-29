@@ -35,6 +35,20 @@ A dedicated map object layer will define sign text and positions. The scene will
 
 No conversation gate, locked door, access-card system, or new progression requirement will be added.
 
+## Character Interaction
+
+Talking no longer requires the `E` key. Each character has a proximity zone:
+
+- entering a character's zone automatically opens that character's dialogue;
+- leaving the zone automatically closes the dialogue;
+- approaching the same character again shows the dialogue again;
+- when multiple characters are in range, the nearest character is shown;
+- player movement remains enabled while dialogue is visible, allowing the player to walk away naturally.
+
+A phrase is recorded as discovered the first time its automatic dialogue opens. The on-screen `E — поговорити` prompt is removed. Existing close controls are unnecessary for normal play because distance controls dialogue visibility.
+
+Vasyl uses a dedicated sprite that is visibly much taller than the other characters. His visual origin and interaction position remain anchored at his feet, so the taller artwork does not shift his map position or make proximity behavior inconsistent.
+
 ## Error Handling
 
 The sign layer is required because signs are part of the requested navigation experience. If it is missing, scene creation fails through the existing fatal-error path rather than silently presenting an unlabeled map. Individual malformed sign objects without text or coordinates are skipped with a console error so one bad sign does not prevent the game from loading.
@@ -47,6 +61,10 @@ Automated tests will verify:
 - the spawn and collision layout provide no route into the factory that bypasses the checkpoint;
 - the security NPC is located inside the checkpoint;
 - the scene renders map-defined signs in world space;
+- dialogue opens when the player enters a character's proximity zone and closes when the player leaves it;
+- the nearest character wins when proximity zones overlap;
+- movement remains enabled while dialogue is visible;
+- Vasyl uses a visibly taller sprite while retaining a foot-anchored map position;
 - existing movement, interaction, progress, build, and browser smoke tests still pass.
 
-A browser check will confirm that **«Блядер»** is visible at the entrance, **KPP** is the first destination, every room sign is readable, and the player can walk through the checkpoint without speaking to the guard.
+A browser check will confirm that **«Блядер»** is visible at the entrance, **KPP** is the first destination, every room sign is readable, the player can walk through the checkpoint without speaking to the guard, Vasyl is clearly taller than the other characters, and dialogue appears and disappears naturally as the player approaches and leaves a character.
