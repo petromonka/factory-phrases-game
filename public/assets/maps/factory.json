@@ -2189,14 +2189,14 @@
         3,
         3,
         0,
-        3,
-        3,
-        3,
-        3,
-        3,
-        3,
-        3,
         0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
         3,
         3,
         3,
@@ -2249,14 +2249,14 @@
         3,
         3,
         0,
-        3,
         0,
         0,
         0,
         0,
         0,
-        3,
+        0,
         0,
+        0,
         3,
         0,
         0,
@@ -2309,14 +2309,14 @@
         3,
         3,
         0,
-        3,
         0,
         0,
         0,
         0,
         0,
-        3,
+        0,
         0,
+        0,
         3,
         0,
         0,
@@ -2369,14 +2369,14 @@
         3,
         3,
         0,
-        3,
         0,
         0,
         0,
         0,
         0,
-        3,
+        0,
         0,
+        0,
         3,
         0,
         0,
@@ -2429,14 +2429,14 @@
         3,
         3,
         0,
-        3,
         0,
         0,
         0,
         0,
         0,
-        3,
+        0,
         0,
+        0,
         3,
         0,
         0,
@@ -2489,13 +2489,13 @@
         3,
         3,
         0,
-        3,
         0,
         0,
         0,
         0,
         0,
-        3,
+        0,
+        0,
         0,
         3,
         0,
@@ -2549,13 +2549,13 @@
         3,
         3,
         0,
-        3,
         0,
         0,
         0,
         0,
         0,
-        3,
+        0,
+        0,
         0,
         3,
         0,
@@ -2609,13 +2609,13 @@
         3,
         3,
         0,
-        3,
         0,
         0,
         0,
         0,
         0,
-        3,
+        0,
+        0,
         0,
         3,
         0,
@@ -2669,13 +2669,13 @@
         3,
         3,
         0,
-        3,
         0,
         0,
         0,
         0,
         0,
-        3,
+        0,
+        0,
         0,
         3,
         0,
@@ -2729,13 +2729,13 @@
         3,
         3,
         0,
-        3,
         0,
         0,
         0,
         0,
         0,
-        3,
+        0,
+        0,
         0,
         3,
         0,
@@ -2789,13 +2789,13 @@
         3,
         3,
         0,
-        3,
-        3,
-        5,
-        5,
-        3,
-        3,
-        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
         0,
         3,
         3,
@@ -4306,7 +4306,7 @@
         0,
         0,
         0,
-        8,
+        0,
         0,
         0,
         0,
@@ -4363,10 +4363,10 @@
         0,
         0,
         0,
-        6,
-        6,
         0,
-        8,
+        0,
+        0,
+        0,
         0,
         0,
         0,
@@ -6218,61 +6218,6 @@
         },
         {
           "id": 5,
-          "name": "gatehouse-top",
-          "type": "solid",
-          "x": 32,
-          "y": 32,
-          "width": 112,
-          "height": 16,
-          "rotation": 0,
-          "visible": true
-        },
-        {
-          "id": 6,
-          "name": "gatehouse-left",
-          "type": "solid",
-          "x": 32,
-          "y": 32,
-          "width": 16,
-          "height": 176,
-          "rotation": 0,
-          "visible": true
-        },
-        {
-          "id": 7,
-          "name": "gatehouse-right",
-          "type": "solid",
-          "x": 128,
-          "y": 32,
-          "width": 16,
-          "height": 176,
-          "rotation": 0,
-          "visible": true
-        },
-        {
-          "id": 8,
-          "name": "gatehouse-bottom-left",
-          "type": "solid",
-          "x": 32,
-          "y": 192,
-          "width": 32,
-          "height": 16,
-          "rotation": 0,
-          "visible": true
-        },
-        {
-          "id": 9,
-          "name": "gatehouse-bottom-right",
-          "type": "solid",
-          "x": 96,
-          "y": 192,
-          "width": 48,
-          "height": 16,
-          "rotation": 0,
-          "visible": true
-        },
-        {
-          "id": 10,
           "name": "it-top",
           "type": "solid",
           "x": 160,
@@ -6283,7 +6228,7 @@
           "visible": true
         },
         {
-          "id": 11,
+          "id": 6,
           "name": "it-left",
           "type": "solid",
           "x": 160,
@@ -6294,7 +6239,7 @@
           "visible": true
         },
         {
-          "id": 12,
+          "id": 7,
           "name": "it-right",
           "type": "solid",
           "x": 256,
@@ -6305,7 +6250,7 @@
           "visible": true
         },
         {
-          "id": 13,
+          "id": 8,
           "name": "it-bottom-left",
           "type": "solid",
           "x": 160,
@@ -6316,7 +6261,7 @@
           "visible": true
         },
         {
-          "id": 14,
+          "id": 9,
           "name": "it-bottom-right",
           "type": "solid",
           "x": 224,
@@ -6327,7 +6272,7 @@
           "visible": true
         },
         {
-          "id": 15,
+          "id": 10,
           "name": "shifts-top",
           "type": "solid",
           "x": 288,
@@ -6338,7 +6283,7 @@
           "visible": true
         },
         {
-          "id": 16,
+          "id": 11,
           "name": "shifts-left",
           "type": "solid",
           "x": 288,
@@ -6349,7 +6294,7 @@
           "visible": true
         },
         {
-          "id": 17,
+          "id": 12,
           "name": "shifts-right",
           "type": "solid",
           "x": 416,
@@ -6360,7 +6305,7 @@
           "visible": true
         },
         {
-          "id": 18,
+          "id": 13,
           "name": "shifts-bottom-left",
           "type": "solid",
           "x": 288,
@@ -6371,7 +6316,7 @@
           "visible": true
         },
         {
-          "id": 19,
+          "id": 14,
           "name": "shifts-bottom-right",
           "type": "solid",
           "x": 368,
@@ -6382,7 +6327,7 @@
           "visible": true
         },
         {
-          "id": 20,
+          "id": 15,
           "name": "qm-top",
           "type": "solid",
           "x": 464,
@@ -6393,7 +6338,7 @@
           "visible": true
         },
         {
-          "id": 21,
+          "id": 16,
           "name": "qm-left",
           "type": "solid",
           "x": 464,
@@ -6404,7 +6349,7 @@
           "visible": true
         },
         {
-          "id": 22,
+          "id": 17,
           "name": "qm-right",
           "type": "solid",
           "x": 592,
@@ -6415,7 +6360,7 @@
           "visible": true
         },
         {
-          "id": 23,
+          "id": 18,
           "name": "qm-bottom-left",
           "type": "solid",
           "x": 464,
@@ -6426,7 +6371,7 @@
           "visible": true
         },
         {
-          "id": 24,
+          "id": 19,
           "name": "qm-bottom-right",
           "type": "solid",
           "x": 544,
@@ -6437,7 +6382,7 @@
           "visible": true
         },
         {
-          "id": 25,
+          "id": 20,
           "name": "sewing-top",
           "type": "solid",
           "x": 640,
@@ -6448,7 +6393,7 @@
           "visible": true
         },
         {
-          "id": 26,
+          "id": 21,
           "name": "sewing-left",
           "type": "solid",
           "x": 640,
@@ -6459,7 +6404,7 @@
           "visible": true
         },
         {
-          "id": 27,
+          "id": 22,
           "name": "sewing-right",
           "type": "solid",
           "x": 800,
@@ -6470,7 +6415,7 @@
           "visible": true
         },
         {
-          "id": 28,
+          "id": 23,
           "name": "sewing-bottom-left",
           "type": "solid",
           "x": 640,
@@ -6481,7 +6426,7 @@
           "visible": true
         },
         {
-          "id": 29,
+          "id": 24,
           "name": "sewing-bottom-right",
           "type": "solid",
           "x": 736,
@@ -6492,7 +6437,7 @@
           "visible": true
         },
         {
-          "id": 30,
+          "id": 25,
           "name": "entry-top-left",
           "type": "solid",
           "x": 32,
@@ -6503,7 +6448,7 @@
           "visible": true
         },
         {
-          "id": 31,
+          "id": 26,
           "name": "entry-top-right",
           "type": "solid",
           "x": 160,
@@ -6514,7 +6459,7 @@
           "visible": true
         },
         {
-          "id": 32,
+          "id": 27,
           "name": "entry-bottom",
           "type": "solid",
           "x": 32,
@@ -6525,7 +6470,7 @@
           "visible": true
         },
         {
-          "id": 33,
+          "id": 28,
           "name": "entry-left",
           "type": "solid",
           "x": 32,
@@ -6536,7 +6481,7 @@
           "visible": true
         },
         {
-          "id": 34,
+          "id": 29,
           "name": "entry-right",
           "type": "solid",
           "x": 240,
@@ -6547,29 +6492,7 @@
           "visible": true
         },
         {
-          "id": 35,
-          "name": "gatehouse-desk",
-          "type": "solid",
-          "x": 48,
-          "y": 64,
-          "width": 32,
-          "height": 16,
-          "rotation": 0,
-          "visible": true
-        },
-        {
-          "id": 36,
-          "name": "gatehouse-cabinet",
-          "type": "solid",
-          "x": 96,
-          "y": 48,
-          "width": 16,
-          "height": 32,
-          "rotation": 0,
-          "visible": true
-        },
-        {
-          "id": 37,
+          "id": 30,
           "name": "it-desk",
           "type": "solid",
           "x": 176,
@@ -6580,7 +6503,7 @@
           "visible": true
         },
         {
-          "id": 38,
+          "id": 31,
           "name": "it-cabinet",
           "type": "solid",
           "x": 224,
@@ -6591,7 +6514,7 @@
           "visible": true
         },
         {
-          "id": 39,
+          "id": 32,
           "name": "shifts-desk",
           "type": "solid",
           "x": 304,
@@ -6602,7 +6525,7 @@
           "visible": true
         },
         {
-          "id": 40,
+          "id": 33,
           "name": "shifts-boxes",
           "type": "solid",
           "x": 384,
@@ -6613,7 +6536,7 @@
           "visible": true
         },
         {
-          "id": 41,
+          "id": 34,
           "name": "qm-desk",
           "type": "solid",
           "x": 480,
@@ -6624,7 +6547,7 @@
           "visible": true
         },
         {
-          "id": 42,
+          "id": 35,
           "name": "qm-cabinet",
           "type": "solid",
           "x": 576,
@@ -6635,7 +6558,7 @@
           "visible": true
         },
         {
-          "id": 43,
+          "id": 36,
           "name": "sewing-thread",
           "type": "solid",
           "x": 656,
@@ -6646,7 +6569,7 @@
           "visible": true
         },
         {
-          "id": 44,
+          "id": 37,
           "name": "sewing-boxes",
           "type": "solid",
           "x": 768,
@@ -6657,7 +6580,7 @@
           "visible": true
         },
         {
-          "id": 45,
+          "id": 38,
           "name": "entry-desk",
           "type": "solid",
           "x": 48,
@@ -6668,7 +6591,7 @@
           "visible": true
         },
         {
-          "id": 46,
+          "id": 39,
           "name": "entry-cabinet",
           "type": "solid",
           "x": 208,
@@ -6679,7 +6602,7 @@
           "visible": true
         },
         {
-          "id": 47,
+          "id": 40,
           "name": "production-machine-a",
           "type": "solid",
           "x": 320,
@@ -6690,7 +6613,7 @@
           "visible": true
         },
         {
-          "id": 48,
+          "id": 41,
           "name": "production-machine-b",
           "type": "solid",
           "x": 448,
@@ -6701,7 +6624,7 @@
           "visible": true
         },
         {
-          "id": 49,
+          "id": 42,
           "name": "production-machine-c",
           "type": "solid",
           "x": 576,
@@ -6712,7 +6635,7 @@
           "visible": true
         },
         {
-          "id": 50,
+          "id": 43,
           "name": "production-machine-d",
           "type": "solid",
           "x": 704,
@@ -6723,7 +6646,7 @@
           "visible": true
         },
         {
-          "id": 51,
+          "id": 44,
           "name": "production-machine-e",
           "type": "solid",
           "x": 384,
@@ -6734,7 +6657,7 @@
           "visible": true
         },
         {
-          "id": 52,
+          "id": 45,
           "name": "production-machine-f",
           "type": "solid",
           "x": 544,
@@ -6745,7 +6668,7 @@
           "visible": true
         },
         {
-          "id": 53,
+          "id": 46,
           "name": "production-supplies",
           "type": "solid",
           "x": 768,
@@ -6768,7 +6691,7 @@
       "draworder": "topdown",
       "objects": [
         {
-          "id": 54,
+          "id": 47,
           "name": "player-spawn",
           "type": "spawn",
           "x": 136,
@@ -6792,11 +6715,11 @@
       "draworder": "topdown",
       "objects": [
         {
-          "id": 55,
+          "id": 48,
           "name": "npc-security",
           "type": "npc",
           "x": 88,
-          "y": 120,
+          "y": 392,
           "width": 0,
           "height": 0,
           "rotation": 0,
@@ -6804,7 +6727,7 @@
           "point": true
         },
         {
-          "id": 56,
+          "id": 49,
           "name": "npc-it",
           "type": "npc",
           "x": 216,
@@ -6816,7 +6739,7 @@
           "point": true
         },
         {
-          "id": 57,
+          "id": 50,
           "name": "npc-shifts",
           "type": "npc",
           "x": 360,
@@ -6828,7 +6751,7 @@
           "point": true
         },
         {
-          "id": 58,
+          "id": 51,
           "name": "npc-qm",
           "type": "npc",
           "x": 536,
@@ -6840,7 +6763,7 @@
           "point": true
         },
         {
-          "id": 59,
+          "id": 52,
           "name": "npc-sewing",
           "type": "npc",
           "x": 728,
@@ -6852,10 +6775,136 @@
           "point": true
         }
       ]
+    },
+    {
+      "id": 7,
+      "name": "signs",
+      "type": "objectgroup",
+      "x": 0,
+      "y": 0,
+      "opacity": 1,
+      "visible": true,
+      "draworder": "topdown",
+      "objects": [
+        {
+          "id": 53,
+          "name": "factory-name",
+          "type": "sign",
+          "x": 144,
+          "y": 488,
+          "width": 0,
+          "height": 0,
+          "rotation": 0,
+          "visible": true,
+          "point": true,
+          "properties": [
+            {
+              "name": "text",
+              "type": "string",
+              "value": "Блядер"
+            }
+          ]
+        },
+        {
+          "id": 54,
+          "name": "checkpoint",
+          "type": "sign",
+          "x": 144,
+          "y": 320,
+          "width": 0,
+          "height": 0,
+          "rotation": 0,
+          "visible": true,
+          "point": true,
+          "properties": [
+            {
+              "name": "text",
+              "type": "string",
+              "value": "KPP"
+            }
+          ]
+        },
+        {
+          "id": 55,
+          "name": "it-office",
+          "type": "sign",
+          "x": 208,
+          "y": 216,
+          "width": 0,
+          "height": 0,
+          "rotation": 0,
+          "visible": true,
+          "point": true,
+          "properties": [
+            {
+              "name": "text",
+              "type": "string",
+              "value": "IT"
+            }
+          ]
+        },
+        {
+          "id": 56,
+          "name": "shifts-office",
+          "type": "sign",
+          "x": 360,
+          "y": 216,
+          "width": 0,
+          "height": 0,
+          "rotation": 0,
+          "visible": true,
+          "point": true,
+          "properties": [
+            {
+              "name": "text",
+              "type": "string",
+              "value": "Відділ змін"
+            }
+          ]
+        },
+        {
+          "id": 57,
+          "name": "qm-office",
+          "type": "sign",
+          "x": 536,
+          "y": 216,
+          "width": 0,
+          "height": 0,
+          "rotation": 0,
+          "visible": true,
+          "point": true,
+          "properties": [
+            {
+              "name": "text",
+              "type": "string",
+              "value": "QM"
+            }
+          ]
+        },
+        {
+          "id": 58,
+          "name": "sewing-storage",
+          "type": "sign",
+          "x": 728,
+          "y": 216,
+          "width": 0,
+          "height": 0,
+          "rotation": 0,
+          "visible": true,
+          "point": true,
+          "properties": [
+            {
+              "name": "text",
+              "type": "string",
+              "value": "Склад швейного цеху"
+            }
+          ]
+        }
+      ]
     }
   ],
-  "nextlayerid": 7,
-  "nextobjectid": 60,
+  "nextlayerid": 8,
+  "nextobjectid": 59,
   "orientation": "orthogonal",
   "renderorder": "right-down",
   "tiledversion": "1.11.0",

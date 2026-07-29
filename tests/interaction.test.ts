@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { nearestInteractable } from "../src/game/interaction";
+import { nearestInteractable, proximityDialogueTarget } from "../src/game/interaction";
 
 it("returns the nearest candidate inside the interaction radius", () => {
   const result = nearestInteractable(
@@ -29,4 +29,28 @@ it("keeps a usable interaction range without reaching across the proven 61px wal
   );
 
   expect(result?.id).toBe("same-room");
+});
+
+it("opens dialogue by returning a character id on entry", () => {
+  expect(proximityDialogueTarget(
+    { x: 0, y: 0 },
+    [{ id: "security", x: 40, y: 0 }]
+  )).toBe("security");
+});
+
+it("closes dialogue by returning undefined after exit", () => {
+  expect(proximityDialogueTarget(
+    { x: 0, y: 0 },
+    [{ id: "security", x: 57, y: 0 }]
+  )).toBeUndefined();
+});
+
+it("switches directly to the nearest character in overlapping range", () => {
+  expect(proximityDialogueTarget(
+    { x: 0, y: 0 },
+    [
+      { id: "security", x: 45, y: 0 },
+      { id: "vasyl", x: 20, y: 0 }
+    ]
+  )).toBe("vasyl");
 });
