@@ -1,6 +1,6 @@
 # Factory Phrases Game
 
-A small desktop-browser exploration game set in a factory office. Walk through the connected rooms, speak to the five characters, and discover all five phrases.
+A small browser exploration game set in a factory office. Walk through the connected rooms, speak to the five characters, and discover all five phrases.
 
 ## Requirements
 

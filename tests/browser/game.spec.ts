@@ -1,4 +1,44 @@
 import { expect, test, type Page } from "@playwright/test";
+import { PNG } from "pngjs";
+
+const PLAYER_SHIRT = { red: 0x31, green: 0x5c, blue: 0xab };
+const PLAYER_COLOR_TOLERANCE = 12;
+
+async function playerScreenPosition(page: Page): Promise<{ x: number; y: number }> {
+  const screenshot = PNG.sync.read(await page.locator("canvas").screenshot());
+  let count = 0;
+  let xTotal = 0;
+  let yTotal = 0;
+
+  for (let y = 0; y < screenshot.height; y += 1) {
+    for (let x = 0; x < screenshot.width; x += 1) {
+      const offset = (y * screenshot.width + x) * 4;
+      if (
+        Math.abs(screenshot.data[offset] - PLAYER_SHIRT.red) <= PLAYER_COLOR_TOLERANCE &&
+        Math.abs(screenshot.data[offset + 1] - PLAYER_SHIRT.green) <= PLAYER_COLOR_TOLERANCE &&
+        Math.abs(screenshot.data[offset + 2] - PLAYER_SHIRT.blue) <= PLAYER_COLOR_TOLERANCE &&
+        screenshot.data[offset + 3] === 0xff
+      ) {
+        count += 1;
+        xTotal += x;
+        yTotal += y;
+      }
+    }
+  }
+
+  if (count === 0) {
+    throw new Error("Player shirt pixels are missing from the canvas");
+  }
+
+  return { x: xTotal / count, y: yTotal / count };
+}
+
+function screenDistance(
+  first: { x: number; y: number },
+  second: { x: number; y: number }
+): number {
+  return Math.hypot(second.x - first.x, second.y - first.y);
+}
 
 async function positionPlayerNearController(page: Page): Promise<void> {
   await page.waitForFunction(
@@ -127,6 +167,10 @@ test("moves from the mobile joystick and resets on release", async ({ page }, te
   await expect(status).toHaveAttribute("data-game-state", "dialogue");
   await expect(status).toHaveAttribute("data-character-id", "security-serhii");
 
+  const movingPosition = await playerScreenPosition(page);
+  await page.waitForTimeout(50);
+  expect(screenDistance(movingPosition, await playerScreenPosition(page))).toBeGreaterThan(1);
+
   await page.dispatchEvent("body", "pointerup", {
     pointerId: 1,
     pointerType: "touch",
@@ -136,8 +180,9 @@ test("moves from the mobile joystick and resets on release", async ({ page }, te
 
   await expect(knob).toHaveAttribute("style", "transform: translate(0px, 0px);");
   await expect(knob).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 0)");
+  const releasedPosition = await playerScreenPosition(page);
   await page.waitForTimeout(200);
-  await expect(status).toHaveAttribute("data-game-state", "dialogue");
+  expect(screenDistance(releasedPosition, await playerScreenPosition(page))).toBeLessThanOrEqual(1);
 
   await joystick.dispatchEvent("pointerdown", {
     pointerId: 1,
