@@ -368,28 +368,28 @@ export class FactoryScene extends Phaser.Scene {
       .setDepth(1000)
       .setScrollFactor(0);
     this.dialoguePanel = this.add
-      .rectangle(480, 450, 880, 146, 0x151b18, 0.96)
+      .rectangle(480, 450, 600, 146, 0x151b18, 0.96)
       .setDepth(1000)
       .setScrollFactor(0)
       .setStrokeStyle(4, 0xe6b566)
       .setVisible(false);
     this.dialogueName = this.add
-      .text(64, 391, "", { ...fixedText, color: "#ffd37c", fontSize: "20px" })
+      .text(200, 391, "", { ...fixedText, color: "#ffd37c", fontSize: "20px" })
       .setDepth(1001)
       .setScrollFactor(0)
       .setVisible(false);
     this.dialogueBody = this.add
-      .text(64, 425, "", {
+      .text(200, 450, "", {
         ...fixedText,
         fontSize: "18px",
         lineSpacing: 4,
-        wordWrap: { width: 830, useAdvancedWrap: true }
+        wordWrap: { width: 500, useAdvancedWrap: true }
       })
       .setDepth(1001)
       .setScrollFactor(0)
       .setVisible(false);
     this.completionText = this.add
-      .text(480, 52, "Зміну завершено. Усі важливі питання вирішено", {
+      .text(480, 52, "Зміну завершено. Усі важливі питання вирішено. Можна їхати додому :)", {
         ...fixedText,
         backgroundColor: "#24392c",
         color: "#f8d98a",
