@@ -25,5 +25,8 @@ function buildJavaScript(script: "build" | "build:browser-test"): string {
 
 it("exposes the player position hook only in the browser-test build", () => {
   expect(buildJavaScript("build")).not.toContain("__factoryTestPositionPlayer");
-  expect(buildJavaScript("build:browser-test")).toContain("__factoryTestPositionPlayer");
+  const browserTestJavaScript = buildJavaScript("build:browser-test");
+  expect(browserTestJavaScript).toContain("__factoryTestPositionPlayer");
+  expect(browserTestJavaScript).toContain("__factoryTestUnlockParking");
+  expect(browserTestJavaScript).toContain("__factoryTestPositionParkingPlayer");
 }, 30_000);

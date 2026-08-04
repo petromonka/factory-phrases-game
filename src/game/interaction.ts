@@ -27,3 +27,17 @@ export function proximityDialogueTarget(
 ): string | undefined {
   return nearestInteractable(origin, candidates)?.id;
 }
+
+export class EdgeTrigger {
+  private wasDown = false;
+
+  public update(isDown: boolean): boolean {
+    const fired = isDown && !this.wasDown;
+    this.wasDown = isDown;
+    return fired;
+  }
+
+  public reset(): void {
+    this.wasDown = false;
+  }
+}

@@ -1,60 +1,50 @@
-import { CHARACTERS } from "./characters";
-
-const KNOWN_CHARACTER_IDS: ReadonlySet<string> = new Set(CHARACTERS.map((character) => character.id));
-const PROGRESS_KEY = "factory-phrases-progress-v1";
-
-export function parseProgress(raw: string | null): ReadonlySet<string> {
-  try {
-    const parsed: unknown = JSON.parse(raw ?? "[]");
-    if (!Array.isArray(parsed)) {
-      return new Set();
-    }
-
-    return new Set(parsed.filter((value): value is string => typeof value === "string" && KNOWN_CHARACTER_IDS.has(value)));
-  } catch {
-    return new Set();
-  }
+export interface RunProgressSnapshot {
+  collectibles: ReadonlySet<string>;
+  controllerCompleted: boolean;
+  collectibleCount: number;
+  collectibleTotal: number;
+  parkingUnlocked: boolean;
 }
 
-export function discover(progress: ReadonlySet<string>, characterId: string): ReadonlySet<string> {
-  return new Set([...progress, characterId]);
-}
+export class RunProgress {
+  private readonly knownIds: ReadonlySet<string>;
+  private readonly collectibles = new Set<string>();
+  private controllerCompleted = false;
 
-export function isComplete(progress: ReadonlySet<string>): boolean {
-  return [...KNOWN_CHARACTER_IDS].every((characterId) => progress.has(characterId));
-}
-
-export class ProgressStore {
-  private memory: ReadonlySet<string> = new Set();
-  private storageIsUsable: boolean;
-
-  public constructor(private readonly storage: Storage | undefined) {
-    this.storageIsUsable = storage !== undefined;
+  public constructor(characterIds: readonly string[]) {
+    this.knownIds = new Set(characterIds);
   }
 
-  public load(): ReadonlySet<string> {
-    if (!this.storage || !this.storageIsUsable) {
-      return this.memory;
+  public completeCollectible(characterId: string): RunProgressSnapshot {
+    if (this.knownIds.has(characterId)) {
+      this.collectibles.add(characterId);
     }
 
-    try {
-      const progress = parseProgress(this.storage.getItem(PROGRESS_KEY));
-      this.memory = progress;
-      return progress;
-    } catch {
-      this.storageIsUsable = false;
-      return this.memory;
-    }
+    return this.snapshot();
   }
 
-  public save(progress: ReadonlySet<string>): void {
-    this.memory = new Set(progress);
+  public completeController(): RunProgressSnapshot {
+    this.controllerCompleted = true;
+    return this.snapshot();
+  }
 
-    try {
-      this.storage?.setItem(PROGRESS_KEY, JSON.stringify([...progress]));
-    } catch {
-      this.storageIsUsable = false;
-      // Storage access can be blocked by browser privacy settings.
-    }
+  public reset(): RunProgressSnapshot {
+    this.collectibles.clear();
+    this.controllerCompleted = false;
+    return this.snapshot();
+  }
+
+  public isParkingUnlocked(): boolean {
+    return this.collectibles.size === this.knownIds.size && this.controllerCompleted;
+  }
+
+  public snapshot(): RunProgressSnapshot {
+    return Object.freeze({
+      collectibles: new Set(this.collectibles),
+      controllerCompleted: this.controllerCompleted,
+      collectibleCount: this.collectibles.size,
+      collectibleTotal: this.knownIds.size,
+      parkingUnlocked: this.isParkingUnlocked()
+    });
   }
 }

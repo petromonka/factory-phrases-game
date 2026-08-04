@@ -1,65 +1,66 @@
 # Factory Phrases Game
 
-A small browser exploration game set in a factory office. Walk through the connected rooms, speak to the five characters, and discover all five phrases.
+A small browser exploration game set in a sewing factory. Walk through the checkpoint, offices, sewing lines, and parking level; talk to characters with deliberate `E` interaction.
 
 ## Requirements
 
 - Node.js 24 or newer
-- npm (included with Node.js)
+- npm, included with Node.js
 
-## Run locally
-
-Install the dependencies and start Vite's development server:
+## Run Locally
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open the local address printed by Vite in a desktop browser.
+Open the local address printed by Vite in a browser.
 
-## Controls and objective
+## Controls And Objective
 
 - Move with `W`, `A`, `S`, and `D`, or the arrow keys.
-- On a phone, rotate to landscape and drag the on-screen joystick to move.
-- Release the joystick to stop.
-- Walk close to a character to see their phrase automatically.
-- Walk away to close the dialogue.
+- Press `E` near a character to start dialogue.
+- Press `E` again to advance one dialogue line at a time.
+- On a phone, rotate to landscape, use the lower-left joystick to move, and use the lower-right `E` button to interact.
 
-Desktop keyboard controls remain available.
+The first level unlocks the parking exit after all five main factory conversations and at least one sewing-line controller request. Progress is kept only for the current page session, so each reload starts again from the KPP.
 
-The objective is to find every phrase from the five characters in the connected office rooms. Progress is saved in the browser, so returning to the game preserves phrases already found.
+## Edit Game Content
 
-The central factory floor contains four sewing lines, each ending at a final-control station and controller. A controller's equipment request is selected on each approach and remains visible until you walk away. These ambient requests do not count toward the five collectible phrases or saved progress.
+Character names, rooms, dialogue, and their map object IDs live in [`src/game/characters.ts`](src/game/characters.ts). Sewing-line controller names and random equipment requests live in [`src/game/controllers.ts`](src/game/controllers.ts).
 
-## Edit game content
+The factory map is [`public/assets/maps/factory.json`](public/assets/maps/factory.json). The parking map is [`public/assets/maps/parking.json`](public/assets/maps/parking.json). Both are Tiled JSON maps and use the tilesheet at [`public/assets/tiles/factory-tiles.png`](public/assets/tiles/factory-tiles.png).
 
-Character names, rooms, phrases, and their map object IDs live in [`src/game/characters.ts`](src/game/characters.ts). Keep each `objectId` aligned with the matching point object in the map's `npcs` object layer.
-
-The map is a Tiled JSON map at [`public/assets/maps/factory.json`](public/assets/maps/factory.json). Open it in [Tiled](https://www.mapeditor.org/), edit the visible tile layers or object layers, and save it back in JSON format. Preserve the required `floor`, `walls`, and `furniture` tile layers, plus the `collisions`, `spawn`, `npcs`, and `signs` object layers; the game expects a `player-spawn` point, one NPC point for every character, and each sign's visible copy in a string property named `text`.
-
-## Production build and preview
-
-Create and inspect the production build locally:
+## Production Build And Preview
 
 ```bash
 npm run build
 npm run preview
 ```
 
-`npm run preview` serves the generated `dist/` directory. The build automatically uses `/factory-phrases-game/` as its asset base path in GitHub Actions and `/` during local development.
+`npm run preview` serves the generated `dist/` directory.
 
-## Browser smoke test
+## GitHub Pages And Phone Play
 
-Install Playwright's Firefox and Chromium browsers once, then run the production-preview smoke in installed Chrome, Playwright Firefox, and a touch-enabled Pixel 7 profile:
+Build for Pages with:
+
+```bash
+npm run build:pages
+```
+
+Deploy the generated `dist/` files with the `/factory-phrases-game/` base path. On a phone, open the same GitHub Pages URL in landscape mode; movement uses the lower-left joystick and interaction uses the lower-right `E` button.
+
+## Browser Smoke Test
+
+Install Playwright browsers once, then run:
 
 ```bash
 npx playwright install firefox chromium
 npm run test:browser
 ```
 
-The smoke builds with the GitHub Pages base path, starts Vite's production preview at `/factory-phrases-game/`, fails on browser page errors, and opens real NPC dialogue with keyboard and touch input.
+The smoke test builds with the GitHub Pages base path, starts Vite preview at `/factory-phrases-game/`, fails on browser page errors, and covers factory dialogue, mobile controls, parking, and restart.
 
-## Deploy to GitHub Pages
+## Deploy To GitHub Pages
 
-The included workflow tests and builds the project on pushes to `main`, then deploys the generated `dist/` artifact. Before the first deployment, enable it in the repository: **Settings** → **Pages** → **Build and deployment** → select **GitHub Actions** as the source. You can also start the workflow manually from the Actions tab.
+The included workflow tests and builds the project on pushes to `main`, then deploys the generated `dist/` artifact. Before the first deployment, enable it in the repository: Settings → Pages → Build and deployment → select GitHub Actions as the source. You can also start the workflow manually from the Actions tab.

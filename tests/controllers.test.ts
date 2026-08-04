@@ -4,17 +4,17 @@ import { AmbientDialogueState, selectControllerRequest } from "../src/game/contr
 
 it("defines four non-collectible final-control characters", () => {
   expect(CONTROLLERS).toEqual([
-    { id: "controller-1", name: "Контролер 1", objectId: "controller-1" },
-    { id: "controller-2", name: "Контролер 2", objectId: "controller-2" },
-    { id: "controller-3", name: "Контролер 3", objectId: "controller-3" },
-    { id: "controller-4", name: "Контролер 4", objectId: "controller-4" }
+    { id: "controller-1", name: "Контролер Галина", objectId: "controller-1" },
+    { id: "controller-2", name: "Контролер Микола", objectId: "controller-2" },
+    { id: "controller-3", name: "Контролер Таня", objectId: "controller-3" },
+    { id: "controller-4", name: "Контролер Іван", objectId: "controller-4" }
   ]);
 });
 
 it.each([
   [0, "Дайте, будь ласка, нову мишку"],
   [0.25, "Потрібен новий сканер"],
-  [0.5, "Потрібен новий комп’ютер"],
+  [0.5, "Потрібен новий комп'ютер"],
   [0.999, "Дайте, будь ласка, новий сенсорний екран"]
 ])("maps random value %s to the expected request", (value, expected) => {
   expect(selectControllerRequest(() => value)).toBe(expected);

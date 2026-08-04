@@ -1,11 +1,17 @@
 import Phaser from "phaser";
+import { CHARACTERS } from "./game/characters";
 import { createGameConfig } from "./game/config";
 import { stoppedMovementSource } from "./game/movement";
+import { RunProgress } from "./game/progress";
 import {
   createTouchController,
   type MovementSource,
   type TouchController
 } from "./game/touchController";
+import {
+  createTouchInteractionButton,
+  type TouchInteractionSource
+} from "./game/touchInteraction";
 import "./style.css";
 
 type FactorySceneWithPlayer = Phaser.Scene & {
@@ -14,12 +20,17 @@ type FactorySceneWithPlayer = Phaser.Scene & {
 
 type FactoryTestWindow = Window & {
   __factoryTestPositionPlayer?: (x: number, y: number) => void;
+  __factoryTestUnlockParking?: () => void;
+  __factoryTestPositionParkingPlayer?: (x: number, y: number) => void;
 };
 
 const joystick = document.getElementById("touch-joystick");
 const joystickKnob = document.getElementById("touch-joystick-knob");
+const interactionButton = document.getElementById("touch-interaction");
 let controller: TouchController | undefined;
+let interactionController: TouchInteractionSource | undefined;
 let touchMovement: MovementSource = stoppedMovementSource;
+let touchInteraction: TouchInteractionSource | undefined;
 
 if (!joystick || !joystickKnob) {
   console.error(
@@ -34,15 +45,47 @@ if (!joystick || !joystickKnob) {
   }
 }
 
-const game = new Phaser.Game(createGameConfig("game", touchMovement));
+if (!interactionButton) {
+  console.error("Unable to initialize touch interaction: missing #touch-interaction.");
+} else {
+  try {
+    interactionController = createTouchInteractionButton(interactionButton);
+    touchInteraction = interactionController;
+  } catch (error) {
+    console.error("Unable to initialize touch interaction: button creation failed.", error);
+  }
+}
 
-window.addEventListener("pagehide", () => controller?.destroy(), { once: true });
+const game = new Phaser.Game(createGameConfig("game", touchMovement, touchInteraction));
+
+window.addEventListener("pagehide", () => {
+  controller?.destroy();
+  interactionController?.destroy();
+}, { once: true });
 
 if (import.meta.env.VITE_TEST_HOOKS === "1") {
   (window as FactoryTestWindow).__factoryTestPositionPlayer = (x, y) => {
     const scene = game.scene.getScene("factory") as FactorySceneWithPlayer;
     if (!scene.player) {
       throw new Error("Factory player is not ready");
+    }
+
+    scene.player.setPosition(x, y);
+    scene.player.body?.reset(x, y);
+  };
+  (window as FactoryTestWindow).__factoryTestUnlockParking = () => {
+    const existing = game.registry.get("runProgress") as RunProgress | undefined;
+    const progress = existing ?? new RunProgress(CHARACTERS.map((character) => character.id));
+    for (const character of CHARACTERS) {
+      progress.completeCollectible(character.id);
+    }
+    progress.completeController();
+    game.registry.set("runProgress", progress);
+  };
+  (window as FactoryTestWindow).__factoryTestPositionParkingPlayer = (x, y) => {
+    const scene = game.scene.getScene("parking") as FactorySceneWithPlayer;
+    if (!scene.player) {
+      throw new Error("Parking player is not ready");
     }
 
     scene.player.setPosition(x, y);

@@ -2,14 +2,25 @@ import { expect, it } from "vitest";
 import { CHARACTERS } from "../src/game/characters";
 import { CONTROLLERS } from "../src/game/controllers";
 
-it("contains the five approved characters and exact phrases", () => {
+it("contains the five approved characters and exact dialogues", () => {
   expect(CHARACTERS).toHaveLength(5);
   expect(CHARACTERS).toMatchObject([
-    { id: "security-serhii", name: "Охоронець Сергій", room: "Прохідна", phrase: "Він мені одразу не понравився як тіко я його побачив", objectId: "npc-security" },
-    { id: "it-vasyl", name: "Василь", room: "Кабінет ІТ", phrase: "Дімона нема — поїхав кудись і казав, зараз буде", objectId: "npc-it" },
-    { id: "shifts-serhii", name: "Сергій", room: "Відділ змін", phrase: "Поставте нам, будь ласка, філєр і EASY DMS", objectId: "npc-shifts" },
-    { id: "qm-olena", name: "Олена", room: "Кабінет QM", phrase: "Я як той пес — хитаю головою і все розумію, але сказати не можу ніц на англійській", objectId: "npc-qm" },
-    { id: "sewing-sasha", name: "Саша", room: "Склад швейного цеху", phrase: "Тут трапилася халепа — маніпулятор типу мишка маєте?", objectId: "npc-sewing" }
+    { id: "security-serhii", name: "Охоронець Сергій", room: "Прохідна", objectId: "npc-security" },
+    { id: "it-vasyl", name: "Василь", room: "Кабінет ІТ", objectId: "npc-it" },
+    { id: "shifts-serhii", name: "Сергій", room: "Відділ змін", objectId: "npc-shifts" },
+    { id: "qm-olena", name: "Олена", room: "Кабінет QM", objectId: "npc-qm" },
+    { id: "sewing-sasha", name: "Саша", room: "Склад швейного цеху", objectId: "npc-sewing" }
+  ]);
+});
+
+it("uses exact guard dialogue as a four-line conversation", () => {
+  const guard = CHARACTERS.find((character) => character.id === "security-serhii");
+
+  expect(guard?.dialogue.lines).toEqual([
+    { speaker: "Я", text: "Привіт, Сєрий" },
+    { speaker: "Сергій", text: "Здоров" },
+    { speaker: "Я", text: "Як там справи? Що скажеш на Пашу?" },
+    { speaker: "Сергій", text: "Він мені одразу не понравився, як я тільки його побачив" }
   ]);
 });
 
