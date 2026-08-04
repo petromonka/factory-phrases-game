@@ -134,6 +134,15 @@ it("does not draw a separate advance prompt over the factory dialogue body", () 
   expect(source).toContain('touchInteraction?.setLabel("Далі")');
 });
 
+it("renders a dialogue footer that explains desktop E and mobile Dali controls", () => {
+  const source = readFileSync("src/game/FactoryScene.ts", "utf8");
+
+  expect(source).toContain("dialogueHint");
+  expect(source).toContain("dialogueAdvanceHint()");
+  expect(source).toContain("Натисни E, щоб далі");
+  expect(source).toContain("Натисни кнопку «Далі»");
+});
+
 it("shows the factory counter as total required objectives including controller", () => {
   const source = readFileSync("src/game/FactoryScene.ts", "utf8");
 

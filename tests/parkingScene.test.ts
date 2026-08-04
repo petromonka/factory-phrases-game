@@ -2,12 +2,17 @@ import { readFileSync } from "node:fs";
 import { existsSync } from "node:fs";
 import { expect, it } from "vitest";
 
-it("defines Dimon, Yura, car departure, and restart behavior", () => {
+it("defines Dimon, Yura, car departure, and final restart behavior", () => {
   const source = readFileSync("src/game/ParkingScene.ts", "utf8");
 
   expect(source).toContain("Не міган канєшно, але піде");
   expect(source).toContain("Щось в мене цееееейво гальмує інтеееернееет в палатці");
   expect(source).toContain("startCarDeparture");
+  expect(source).toContain("showFinale");
+  expect(source).toContain("Ну всьо, всі діла порішав тепер можна і домів.");
+  expect(source).toContain("Натисніть R, щоб почати з початку");
+  expect(source).toContain('touchInteraction?.setLabel("Спочатку")');
+  expect(source).toContain("this.restartKey.isDown");
   expect(source).toContain("restartFactory");
   expect(source).toContain('this.scene.start("factory")');
 });
@@ -37,6 +42,15 @@ it("does not draw a separate advance prompt over the parking dialogue body", () 
 
   expect(source).not.toContain('promptText.setText("Натисни E, щоб далі")');
   expect(source).toContain('touchInteraction?.setLabel("Далі")');
+});
+
+it("renders a dialogue footer that explains desktop E and mobile Dali controls", () => {
+  const source = readFileSync("src/game/ParkingScene.ts", "utf8");
+
+  expect(source).toContain("dialogueHint");
+  expect(source).toContain("dialogueAdvanceHint()");
+  expect(source).toContain("Натисни E, щоб далі");
+  expect(source).toContain("Натисни кнопку «Далі»");
 });
 
 it("uses Dimon's transparent BYD image asset for the departing car", () => {

@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   base: process.env.GITHUB_ACTIONS ? "/factory-phrases-game/" : "/",
+  plugins: [],
   resolve: {
     alias: {
       phaser: "phaser/dist/phaser.js"

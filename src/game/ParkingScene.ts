@@ -14,6 +14,11 @@ const MOVEMENT_SPEED = 160;
 
 type TouchInteractionSource = { consumePressed(): boolean; setLabel(label: string): void };
 
+function dialogueAdvanceHint(): string {
+  const hasCoarsePointer = globalThis.matchMedia?.("(pointer: coarse)").matches ?? false;
+  return hasCoarsePointer ? "Натисни кнопку «Далі»" : "Натисни E, щоб далі";
+}
+
 interface MovementKeys {
   up: Phaser.Input.Keyboard.Key;
   down: Phaser.Input.Keyboard.Key;
@@ -57,6 +62,7 @@ export class ParkingScene extends Phaser.Scene {
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private wasd!: MovementKeys;
   private interactKey!: Phaser.Input.Keyboard.Key;
+  private restartKey!: Phaser.Input.Keyboard.Key;
   private touchMovement!: MovementSource;
   private touchInteraction?: TouchInteractionSource;
   private readonly dialogueRunner = new DialogueRunner();
@@ -66,11 +72,16 @@ export class ParkingScene extends Phaser.Scene {
   private car!: Phaser.GameObjects.Image | Phaser.GameObjects.Container;
   private parkedCars: Phaser.GameObjects.Container[] = [];
   private dimonDeparted = false;
+  private finaleShown = false;
   private restartQueued = false;
   private promptText!: Phaser.GameObjects.Text;
   private dialoguePanel!: Phaser.GameObjects.Rectangle;
   private dialogueName!: Phaser.GameObjects.Text;
   private dialogueBody!: Phaser.GameObjects.Text;
+  private dialogueHint!: Phaser.GameObjects.Text;
+  private finalePanel!: Phaser.GameObjects.Rectangle;
+  private finaleTitle!: Phaser.GameObjects.Text;
+  private finaleHint!: Phaser.GameObjects.Text;
 
   public constructor() {
     super("parking");
@@ -173,6 +184,7 @@ export class ParkingScene extends Phaser.Scene {
         right: Phaser.Input.Keyboard.KeyCodes.D
       }) as MovementKeys;
       this.interactKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
+      this.restartKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
 
       this.createInterface();
       this.cameras.main
@@ -193,6 +205,14 @@ export class ParkingScene extends Phaser.Scene {
     const interactPressed = this.interactionTrigger.update(
       this.interactKey.isDown || Boolean(this.touchInteraction?.consumePressed())
     );
+
+    if (this.finaleShown) {
+      this.player.setVelocity(0, 0);
+      this.promptText.setVisible(false);
+      this.touchInteraction?.setLabel("Спочатку");
+      if (this.restartKey.isDown || interactPressed) this.restartFactory();
+      return;
+    }
 
     if (this.dialogueRunner.isOpen()) {
       this.player.setVelocity(0, 0);
@@ -247,7 +267,7 @@ export class ParkingScene extends Phaser.Scene {
       return;
     }
     if (result.completed && this.activeTarget?.id === "yura") {
-      this.restartFactory();
+      this.showFinale();
       return;
     }
     if (result.state === "closed") {
@@ -270,7 +290,7 @@ export class ParkingScene extends Phaser.Scene {
       ease: "Sine.easeInOut",
       onComplete: () => {
         this.car.setVisible(false);
-        if (!this.dialogueRunner.isOpen()) {
+        if (!this.dialogueRunner.isOpen() && !this.finaleShown) {
           this.updateStatusMirror("prompt", "Дімон поїхав", "dimon");
         }
       }
@@ -288,6 +308,17 @@ export class ParkingScene extends Phaser.Scene {
     this.scene.start("factory");
   }
 
+  private showFinale(): void {
+    this.finaleShown = true;
+    this.dialogueRunner.close();
+    this.closeDialogue();
+    this.touchInteraction?.setLabel("Спочатку");
+    this.finalePanel.setVisible(true);
+    this.finaleTitle.setVisible(true);
+    this.finaleHint.setVisible(true);
+    this.updateStatusMirror("finale", "Ну всьо, всі діла порішав тепер можна і домів. Натисніть R, щоб почати з початку");
+  }
+
   private renderCurrentDialogueLine(): void {
     const line = this.dialogueRunner.currentLine();
     if (!line || !this.activeTarget) return;
@@ -296,11 +327,13 @@ export class ParkingScene extends Phaser.Scene {
     const speakerLabel = speakerLabelFor(line);
     this.dialogueName.setText(speakerLabel);
     this.dialogueBody.setText(line.text);
+    this.dialogueHint.setText(dialogueAdvanceHint());
     const height = this.scale.height;
-    this.dialogueBody.setY(speakerLabel.length > 0 ? height - 92 : height - 120);
+    this.dialogueBody.setY(speakerLabel.length > 0 ? height - 106 : height - 126);
     this.dialoguePanel.setVisible(true);
     this.dialogueName.setVisible(speakerLabel.length > 0);
     this.dialogueBody.setVisible(true);
+    this.dialogueHint.setVisible(true);
     this.updateStatusMirror(
       "dialogue",
       speakerLabel ? `${speakerLabel}: ${line.text}` : line.text,
@@ -312,6 +345,7 @@ export class ParkingScene extends Phaser.Scene {
     this.dialoguePanel.setVisible(false);
     this.dialogueName.setVisible(false);
     this.dialogueBody.setVisible(false);
+    this.dialogueHint.setVisible(false);
     this.activeTarget = undefined;
   }
 
@@ -398,7 +432,7 @@ export class ParkingScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setVisible(false);
     this.dialoguePanel = this.add
-      .rectangle(width / 2, height - 90, panelWidth, 150, 0x151b18, 0.96)
+      .rectangle(width / 2, height - 94, panelWidth, 170, 0x151b18, 0.96)
       .setDepth(1000)
       .setScrollFactor(0)
       .setStrokeStyle(4, 0xe6b566)
@@ -411,6 +445,41 @@ export class ParkingScene extends Phaser.Scene {
     this.dialogueBody = this.add
       .text(textX, height - 92, "", { ...fixedText, fontSize: "17px", lineSpacing: 4, wordWrap: { width: textWidth, useAdvancedWrap: true } })
       .setDepth(1001)
+      .setScrollFactor(0)
+      .setVisible(false);
+    this.dialogueHint = this.add
+      .text(width / 2 + panelWidth / 2 - 28, height - 44, "", { ...fixedText, color: "#f8d98a", fontSize: "15px", strokeThickness: 3 })
+      .setDepth(1001)
+      .setOrigin(1, 0.5)
+      .setScrollFactor(0)
+      .setVisible(false);
+    this.finalePanel = this.add
+      .rectangle(width / 2, height / 2, Math.min(width - 48, 680), 180, 0x151b18, 0.97)
+      .setDepth(1100)
+      .setScrollFactor(0)
+      .setStrokeStyle(4, 0xe6b566)
+      .setVisible(false);
+    this.finaleTitle = this.add
+      .text(width / 2, height / 2 - 28, "Ну всьо, всі діла порішав тепер можна і домів.", {
+        ...fixedText,
+        color: "#ffd37c",
+        fontSize: "22px",
+        align: "center",
+        wordWrap: { width: Math.min(width - 96, 600), useAdvancedWrap: true }
+      })
+      .setDepth(1101)
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setVisible(false);
+    this.finaleHint = this.add
+      .text(width / 2, height / 2 + 50, "Натисніть R, щоб почати з початку", {
+        ...fixedText,
+        color: "#fff4dc",
+        fontSize: "18px",
+        align: "center"
+      })
+      .setDepth(1101)
+      .setOrigin(0.5)
       .setScrollFactor(0)
       .setVisible(false);
   }
@@ -432,7 +501,7 @@ export class ParkingScene extends Phaser.Scene {
     if (container) renderFatalError(container, message);
   }
 
-  private updateStatusMirror(state: "ready" | "prompt" | "dialogue" | "fatal", text: string, characterId?: string): void {
+  private updateStatusMirror(state: "ready" | "prompt" | "dialogue" | "finale" | "fatal", text: string, characterId?: string): void {
     const status = document.getElementById("game-status");
     if (!status) return;
 
@@ -444,6 +513,7 @@ export class ParkingScene extends Phaser.Scene {
     } else {
       delete status.dataset.characterId;
     }
-    status.textContent = text;
+    const hint = state === "dialogue" ? ` ${dialogueAdvanceHint()}` : "";
+    status.textContent = `${text}${hint}`;
   }
 }
