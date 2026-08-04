@@ -85,12 +85,13 @@ it("contains required layers and game objects", () => {
   const map = readMap();
   const layers = new Map(map.layers.map((mapLayer) => [mapLayer.name, mapLayer]));
 
-  expect([...layers.keys()]).toEqual(expect.arrayContaining(["floor", "walls", "furniture", "collisions", "spawn", "npcs", "signs", "controllers"]));
+  expect([...layers.keys()]).toEqual(expect.arrayContaining(["floor", "walls", "furniture", "collisions", "spawn", "npcs", "signs", "controllers", "exits"]));
   expect(layers.get("spawn")?.objects?.map((object) => object.name)).toContain("player-spawn");
   expect(layers.get("npcs")?.objects?.map((object) => object.name).sort()).toEqual(
     ["npc-it", "npc-qm", "npc-security", "npc-sewing", "npc-shifts"].sort()
   );
   expect(layers.get("collisions")?.objects?.length).toBeGreaterThan(10);
+  expect(layers.get("exits")?.objects?.map((object) => object.name)).toContain("parking-exit");
 });
 
 it("renders signs from map object properties", () => {
