@@ -16,12 +16,14 @@ import "./style.css";
 
 type FactorySceneWithPlayer = Phaser.Scene & {
   player?: Phaser.Physics.Arcade.Sprite;
+  updateCounter?: () => void;
 };
 
 type FactoryTestWindow = Window & {
   __factoryTestPositionPlayer?: (x: number, y: number) => void;
   __factoryTestPlayerPosition?: () => { x: number; y: number };
   __factoryTestUnlockParking?: () => void;
+  __factoryTestCompleteBaseObjectives?: () => void;
   __factoryTestPositionParkingPlayer?: (x: number, y: number) => void;
 };
 
@@ -82,7 +84,8 @@ if (import.meta.env.VITE_TEST_HOOKS === "1") {
 
     return { x: scene.player.x, y: scene.player.y };
   };
-  (window as FactoryTestWindow).__factoryTestUnlockParking = () => {
+  (window as FactoryTestWindow).__factoryTestCompleteBaseObjectives = () => {
+    const scene = game.scene.getScene("factory") as FactorySceneWithPlayer;
     const existing = game.registry.get("runProgress") as RunProgress | undefined;
     const progress = existing ?? new RunProgress(CHARACTERS.map((character) => character.id));
     for (const character of CHARACTERS) {
@@ -90,6 +93,18 @@ if (import.meta.env.VITE_TEST_HOOKS === "1") {
     }
     progress.completeController();
     game.registry.set("runProgress", progress);
+    scene.updateCounter?.();
+  };
+  (window as FactoryTestWindow).__factoryTestUnlockParking = () => {
+    (window as FactoryTestWindow).__factoryTestCompleteBaseObjectives?.();
+    const scene = game.scene.getScene("factory") as FactorySceneWithPlayer;
+    const progress = game.registry.get("runProgress") as RunProgress;
+    progress.pickupMouse();
+    progress.deliverMouse();
+    progress.pickupScanner();
+    progress.deliverScanner();
+    game.registry.set("runProgress", progress);
+    scene.updateCounter?.();
   };
   (window as FactoryTestWindow).__factoryTestPositionParkingPlayer = (x, y) => {
     const scene = game.scene.getScene("parking") as FactorySceneWithPlayer;
