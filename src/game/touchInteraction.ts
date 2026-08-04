@@ -25,7 +25,11 @@ export function createTouchInteractionButton(
     pendingPress = true;
     root.classList.add("is-pressed");
     if (typeof root.setPointerCapture === "function") {
-      root.setPointerCapture(event.pointerId);
+      try {
+        root.setPointerCapture(event.pointerId);
+      } catch {
+        // Synthetic pointer events in tests may not have an active pointer to capture.
+      }
     }
   };
 

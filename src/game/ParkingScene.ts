@@ -172,7 +172,7 @@ export class ParkingScene extends Phaser.Scene {
     if (!this.ready || !this.player) return;
 
     const interactPressed = this.interactionTrigger.update(
-      Phaser.Input.Keyboard.JustDown(this.interactKey) || Boolean(this.touchInteraction?.consumePressed())
+      this.interactKey.isDown || Boolean(this.touchInteraction?.consumePressed())
     );
 
     if (this.dialogueRunner.isOpen()) {
@@ -220,6 +220,9 @@ export class ParkingScene extends Phaser.Scene {
     const result = this.dialogueRunner.advance();
     if (result.completed && this.activeTarget?.id === "dimon") {
       this.startCarDeparture();
+      this.dialogueRunner.close();
+      this.closeDialogue();
+      return;
     }
     if (result.completed && this.activeTarget?.id === "yura") {
       this.restartFactory();

@@ -187,7 +187,7 @@ export class FactoryScene extends Phaser.Scene {
     if (!this.ready || !this.player) return;
 
     const interactPressed = this.interactionTrigger.update(
-      Phaser.Input.Keyboard.JustDown(this.interactKey) || Boolean(this.touchInteraction?.consumePressed())
+      this.interactKey.isDown || Boolean(this.touchInteraction?.consumePressed())
     );
 
     if (this.dialogueRunner.isOpen()) {

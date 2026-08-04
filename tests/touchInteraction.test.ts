@@ -24,3 +24,16 @@ it("stays hidden when touch is unavailable", () => {
   expect(source.consumePressed()).toBe(false);
   source.destroy();
 });
+
+it("still records a press when pointer capture is unavailable", () => {
+  const button = document.createElement("button");
+  button.setPointerCapture = () => {
+    throw new DOMException("No active pointer", "NotFoundError");
+  };
+  const source = createTouchInteractionButton(button, true);
+
+  button.dispatchEvent(new PointerEvent("pointerdown", { pointerId: 7, pointerType: "touch" }));
+
+  expect(source.consumePressed()).toBe(true);
+  source.destroy();
+});

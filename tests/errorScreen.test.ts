@@ -5,7 +5,8 @@ import { renderFatalError } from "../src/game/errorScreen";
 const mainMocks = vi.hoisted(() => ({
   createGame: vi.fn(),
   createGameConfig: vi.fn(),
-  createTouchController: vi.fn()
+  createTouchController: vi.fn(),
+  createTouchInteractionButton: vi.fn()
 }));
 
 vi.mock("phaser", () => ({
@@ -20,6 +21,10 @@ vi.mock("../src/game/config", () => ({
 
 vi.mock("../src/game/touchController", () => ({
   createTouchController: mainMocks.createTouchController
+}));
+
+vi.mock("../src/game/touchInteraction", () => ({
+  createTouchInteractionButton: mainMocks.createTouchInteractionButton
 }));
 
 beforeEach(() => {
@@ -63,20 +68,29 @@ it("destroys initialized touch controls on the first pagehide", async () => {
   root.id = "touch-joystick";
   const knob = document.createElement("div");
   knob.id = "touch-joystick-knob";
-  document.body.append(root, knob);
+  const button = document.createElement("button");
+  button.id = "touch-interaction";
+  document.body.append(root, knob, button);
   const controller = {
     current: () => ({ x: 0.5, y: 0 }),
     destroy: vi.fn()
   };
+  const interaction = {
+    consumePressed: () => false,
+    destroy: vi.fn()
+  };
   mainMocks.createTouchController.mockReturnValue(controller);
+  mainMocks.createTouchInteractionButton.mockReturnValue(interaction);
 
   await import("../src/main");
   window.dispatchEvent(new Event("pagehide"));
   window.dispatchEvent(new Event("pagehide"));
 
   expect(mainMocks.createTouchController).toHaveBeenCalledWith(root, knob);
-  expect(mainMocks.createGameConfig).toHaveBeenCalledWith("game", controller);
+  expect(mainMocks.createTouchInteractionButton).toHaveBeenCalledWith(button);
+  expect(mainMocks.createGameConfig).toHaveBeenCalledWith("game", controller, interaction);
   expect(controller.destroy).toHaveBeenCalledOnce();
+  expect(interaction.destroy).toHaveBeenCalledOnce();
 });
 
 it("starts the game with stopped touch movement when controller creation fails", async () => {

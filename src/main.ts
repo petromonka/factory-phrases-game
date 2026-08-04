@@ -1,6 +1,8 @@
 import Phaser from "phaser";
+import { CHARACTERS } from "./game/characters";
 import { createGameConfig } from "./game/config";
 import { stoppedMovementSource } from "./game/movement";
+import { RunProgress } from "./game/progress";
 import {
   createTouchController,
   type MovementSource,
@@ -18,6 +20,8 @@ type FactorySceneWithPlayer = Phaser.Scene & {
 
 type FactoryTestWindow = Window & {
   __factoryTestPositionPlayer?: (x: number, y: number) => void;
+  __factoryTestUnlockParking?: () => void;
+  __factoryTestPositionParkingPlayer?: (x: number, y: number) => void;
 };
 
 const joystick = document.getElementById("touch-joystick");
@@ -64,6 +68,24 @@ if (import.meta.env.VITE_TEST_HOOKS === "1") {
     const scene = game.scene.getScene("factory") as FactorySceneWithPlayer;
     if (!scene.player) {
       throw new Error("Factory player is not ready");
+    }
+
+    scene.player.setPosition(x, y);
+    scene.player.body?.reset(x, y);
+  };
+  (window as FactoryTestWindow).__factoryTestUnlockParking = () => {
+    const existing = game.registry.get("runProgress") as RunProgress | undefined;
+    const progress = existing ?? new RunProgress(CHARACTERS.map((character) => character.id));
+    for (const character of CHARACTERS) {
+      progress.completeCollectible(character.id);
+    }
+    progress.completeController();
+    game.registry.set("runProgress", progress);
+  };
+  (window as FactoryTestWindow).__factoryTestPositionParkingPlayer = (x, y) => {
+    const scene = game.scene.getScene("parking") as FactorySceneWithPlayer;
+    if (!scene.player) {
+      throw new Error("Parking player is not ready");
     }
 
     scene.player.setPosition(x, y);
