@@ -1,45 +1,13 @@
 import { expect, test, type Page } from "@playwright/test";
-import { PNG } from "pngjs";
-
-const PLAYER_SHIRT = { red: 0x31, green: 0x5c, blue: 0xab };
-const PLAYER_COLOR_TOLERANCE = 12;
 
 type FactoryTestWindow = Window & {
   __factoryTestPositionPlayer?: (x: number, y: number) => void;
+  __factoryTestPlayerPosition?: () => { x: number; y: number };
   __factoryTestUnlockParking?: () => void;
   __factoryTestPositionParkingPlayer?: (x: number, y: number) => void;
 };
 
-async function playerScreenPosition(page: Page): Promise<{ x: number; y: number }> {
-  const screenshot = PNG.sync.read(await page.locator("canvas").screenshot());
-  let count = 0;
-  let xTotal = 0;
-  let yTotal = 0;
-
-  for (let y = 0; y < screenshot.height; y += 1) {
-    for (let x = 0; x < screenshot.width; x += 1) {
-      const offset = (y * screenshot.width + x) * 4;
-      if (
-        Math.abs(screenshot.data[offset] - PLAYER_SHIRT.red) <= PLAYER_COLOR_TOLERANCE &&
-        Math.abs(screenshot.data[offset + 1] - PLAYER_SHIRT.green) <= PLAYER_COLOR_TOLERANCE &&
-        Math.abs(screenshot.data[offset + 2] - PLAYER_SHIRT.blue) <= PLAYER_COLOR_TOLERANCE &&
-        screenshot.data[offset + 3] === 0xff
-      ) {
-        count += 1;
-        xTotal += x;
-        yTotal += y;
-      }
-    }
-  }
-
-  if (count === 0) {
-    throw new Error("Player shirt pixels are missing from the canvas");
-  }
-
-  return { x: xTotal / count, y: yTotal / count };
-}
-
-function screenDistance(
+function pointDistance(
   first: { x: number; y: number },
   second: { x: number; y: number }
 ): number {
@@ -57,6 +25,15 @@ async function positionFactoryPlayer(page: Page, x: number, y: number): Promise<
   await page.evaluate(([nextX, nextY]) => {
     (window as FactoryTestWindow).__factoryTestPositionPlayer?.(nextX, nextY);
   }, [x, y]);
+}
+
+async function factoryPlayerPosition(page: Page): Promise<{ x: number; y: number }> {
+  await waitForFactoryHook(page);
+  return page.evaluate(() => {
+    const position = (window as FactoryTestWindow).__factoryTestPlayerPosition?.();
+    if (!position) throw new Error("Factory player position hook is unavailable");
+    return position;
+  });
 }
 
 async function positionParkingPlayer(page: Page, x: number, y: number): Promise<void> {
@@ -84,11 +61,12 @@ test("opens guard dialogue only from E and advances one line per press", async (
 
   await positionFactoryPlayer(page, 88, 392);
   await expect(status).toHaveAttribute("data-game-state", "prompt");
-  await expect(status).toContainText("E — поговорити");
+  await expect(status).toContainText("Натисни E, щоб говорити");
 
   await pressInteractionKey(page);
   await expect(status).toHaveAttribute("data-game-state", "dialogue");
   await expect(status).toContainText("Привіт, Сєрий");
+  await expect(status).not.toContainText("Я:");
   await pressInteractionKey(page);
   await expect(status).toContainText("Здоров");
   await pressInteractionKey(page);
@@ -123,7 +101,7 @@ test("opens controller dialogue by E without changing collectible progress or lo
   expect(pageErrors).toEqual([]);
 });
 
-test("plays parking level and restarts from Yura", async ({ page }) => {
+test("plays parking level and restarts from Yura", async ({ page }, testInfo) => {
   const pageErrors: Error[] = [];
   page.on("pageerror", (error) => pageErrors.push(error));
   await page.goto("/factory-phrases-game/");
@@ -134,6 +112,10 @@ test("plays parking level and restarts from Yura", async ({ page }) => {
   await page.evaluate(() => (window as FactoryTestWindow).__factoryTestUnlockParking?.());
   await positionFactoryPlayer(page, 920, 488);
   await expect(status).toHaveAttribute("data-game-state", "exit-prompt");
+  await expect(status).toContainText("Натисни E, щоб вийти на парковку");
+  if (testInfo.project.name === "mobile-chromium") {
+    await expect(page.locator("#touch-interaction")).toHaveText("Парковка");
+  }
   await pressInteractionKey(page);
   await expect(status).toHaveAttribute("data-scene", "parking");
 
@@ -141,6 +123,8 @@ test("plays parking level and restarts from Yura", async ({ page }) => {
   await expect(status).toHaveAttribute("data-game-state", "prompt");
   await pressInteractionKey(page);
   await expect(status).toContainText("Не міган канєшно, але піде");
+  await pressInteractionKey(page);
+  await expect(status).toContainText("Ну все, я пігнав, якщо щось то не дзвоніть і не пишіть");
   await pressInteractionKey(page);
   await expect(status).toHaveAttribute("data-dimon-departed", "true", { timeout: 3_000 });
 
@@ -177,6 +161,8 @@ test("moves from the mobile joystick and interacts with the mobile E button", as
   await expect(orientationHint).toBeVisible();
   await expect(orientationHint).toHaveText("Поверніть телефон горизонтально");
   await expect(status).toHaveAttribute("data-game-state", "ready");
+  await page.setViewportSize({ width: 915, height: 412 });
+  await expect(orientationHint).toBeHidden();
 
   const box = await joystick.boundingBox();
   if (!box) throw new Error("Joystick has no bounding box");
@@ -198,10 +184,9 @@ test("moves from the mobile joystick and interacts with the mobile E button", as
     clientY: center.y
   });
   await expect(knob).not.toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 0)");
+  const startingPosition = await factoryPlayerPosition(page);
   await page.waitForTimeout(260);
-  const movingPosition = await playerScreenPosition(page);
-  await page.waitForTimeout(50);
-  expect(screenDistance(movingPosition, await playerScreenPosition(page))).toBeGreaterThan(1);
+  expect(pointDistance(startingPosition, await factoryPlayerPosition(page))).toBeGreaterThan(1);
   await page.dispatchEvent("body", "pointerup", {
     pointerId: 1,
     pointerType: "touch",
@@ -212,6 +197,7 @@ test("moves from the mobile joystick and interacts with the mobile E button", as
 
   await positionFactoryPlayer(page, 88, 392);
   await expect(status).toHaveAttribute("data-game-state", "prompt");
+  await expect(interaction).toHaveText("Говорити");
   const interactionBox = await interaction.boundingBox();
   if (!interactionBox) throw new Error("Interaction button has no bounding box");
   await interaction.dispatchEvent("pointerdown", {
@@ -227,6 +213,7 @@ test("moves from the mobile joystick and interacts with the mobile E button", as
     clientY: interactionBox.y + interactionBox.height / 2
   });
   await expect(status).toHaveAttribute("data-game-state", "dialogue");
+  await expect(interaction).toHaveText("Далі");
   await expect(status).toContainText("Привіт, Сєрий");
   expect(pageErrors).toEqual([]);
 });

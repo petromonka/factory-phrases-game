@@ -17,6 +17,22 @@ it("provides touch controls and a portrait-orientation hint", () => {
   expect(documentSource).toContain("Поверніть телефон горизонтально");
   expect(styleSource).toContain("touch-action: none");
   expect(styleSource).toContain("env(safe-area-inset-left)");
-  expect(styleSource).toContain("@media (orientation: portrait)");
+  expect(styleSource).toContain("@media (pointer: coarse) and (orientation: portrait)");
   expect(styleSource).toContain("@media (pointer: coarse)");
+});
+
+it("contains the mobile interaction button and orientation hint copy", () => {
+  document.body.innerHTML = readFileSync("index.html", "utf8");
+
+  expect(document.querySelector("#touch-interaction")?.textContent).toBe("E");
+  expect(document.querySelector("#orientation-hint")?.textContent).toBe("Поверніть телефон горизонтально");
+});
+
+it("uses mobile-safe layout rules for touch controls and portrait mode", () => {
+  const css = readFileSync("src/style.css", "utf8");
+
+  expect(css).toContain("safe-area-inset-right");
+  expect(css).toContain("@media (pointer: coarse)");
+  expect(css).toContain("@media (pointer: coarse) and (orientation: portrait)");
+  expect(css).toContain("font-size: clamp(");
 });

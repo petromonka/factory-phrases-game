@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { DialogueRunner, type DialogueDefinition } from "./dialogue";
+import { DialogueRunner, speakerLabelFor, type DialogueDefinition } from "./dialogue";
 import { renderFatalError } from "./errorScreen";
 import { EdgeTrigger, nearestInteractable } from "./interaction";
 import { movementVector } from "./movement";
@@ -11,7 +11,7 @@ const MAP_KEY = "parking-map";
 const TILESET_KEY = "factory-tiles";
 const MOVEMENT_SPEED = 160;
 
-type TouchInteractionSource = { consumePressed(): boolean };
+type TouchInteractionSource = { consumePressed(): boolean; setLabel(label: string): void };
 
 interface MovementKeys {
   up: Phaser.Input.Keyboard.Key;
@@ -29,7 +29,10 @@ type ParkingTarget = {
 const PARKING_DIALOGUES = {
   dimon: {
     id: "parking-dimon",
-    lines: [{ speaker: "Дімон", text: "Не міган канєшно, але піде" }]
+    lines: [
+      { speaker: "Дімон", text: "Не міган канєшно, але піде" },
+      { speaker: "Дімон", text: "Ну все, я пігнав, якщо щось то не дзвоніть і не пишіть 😁" }
+    ]
   },
   yura: {
     id: "parking-yura",
@@ -59,7 +62,8 @@ export class ParkingScene extends Phaser.Scene {
   private readonly interactionTrigger = new EdgeTrigger();
   private targets: ParkingTarget[] = [];
   private activeTarget?: ParkingTarget;
-  private car!: Phaser.GameObjects.Rectangle;
+  private car!: Phaser.GameObjects.Container;
+  private parkedCars: Phaser.GameObjects.Container[] = [];
   private dimonDeparted = false;
   private restartQueued = false;
   private promptText!: Phaser.GameObjects.Text;
@@ -102,12 +106,13 @@ export class ParkingScene extends Phaser.Scene {
       const npcLayer = map.getObjectLayer("npcs");
       const carLayer = map.getObjectLayer("car");
       const tentLayer = map.getObjectLayer("tent");
+      const parkedCarLayer = map.getObjectLayer("parked-cars");
       const spawnPoint = spawnLayer?.objects.find((object) => object.name === "player-spawn");
       const dimonPoint = npcLayer?.objects.find((object) => object.name === "npc-dimon");
       const yuraPoint = npcLayer?.objects.find((object) => object.name === "npc-yura");
       const carObject = carLayer?.objects.find((object) => object.name === "dimon-car");
       const tentObject = tentLayer?.objects.find((object) => object.name === "warehouse-tent");
-      if (!collisionLayer || !hasPoint(spawnPoint) || !hasPoint(dimonPoint) || !hasPoint(yuraPoint) || !carObject || !tentObject) {
+      if (!collisionLayer || !hasPoint(spawnPoint) || !hasPoint(dimonPoint) || !hasPoint(yuraPoint) || !carObject || !tentObject || !parkedCarLayer) {
         throw new Error("The parking object layers are incomplete.");
       }
 
@@ -126,12 +131,26 @@ export class ParkingScene extends Phaser.Scene {
 
       this.createTextures();
       this.renderTent(tentObject);
-      this.car = this.add
-        .rectangle((carObject.x ?? 0) + (carObject.width ?? 48) / 2, (carObject.y ?? 0) + (carObject.height ?? 28) / 2, carObject.width ?? 48, carObject.height ?? 28, 0x75bde8)
-        .setDepth(12)
-        .setStrokeStyle(3, 0x245a77);
-      this.add.rectangle(this.car.x - 12, this.car.y - 6, 10, 6, 0xd9f4ff).setDepth(13);
-      this.add.rectangle(this.car.x + 12, this.car.y - 6, 10, 6, 0xd9f4ff).setDepth(13);
+      this.car = this.createCar(
+        (carObject.x ?? 0) + (carObject.width ?? 48) / 2,
+        (carObject.y ?? 0) + (carObject.height ?? 28) / 2,
+        0x75bde8,
+        0x245a77
+      );
+      const parkedColors = [
+        [0x58606a, 0x24282d],
+        [0x8a6f4d, 0x3b3024],
+        [0x7b3f4a, 0x2c1820],
+        [0x4d6f5f, 0x1d332a]
+      ] as const;
+      this.parkedCars = parkedCarLayer.objects.map((object, index) =>
+        this.createCar(
+          (object.x ?? 0) + (object.width ?? 50) / 2,
+          (object.y ?? 0) + (object.height ?? 28) / 2,
+          parkedColors[index % parkedColors.length][0],
+          parkedColors[index % parkedColors.length][1]
+        ).setDepth(11)
+      );
 
       this.player = this.physics.add.sprite(spawnPoint.x, spawnPoint.y, "player-down");
       this.player.setDepth(20).setCollideWorldBounds(true).setSize(10, 12).setOffset(3, 7);
@@ -177,13 +196,16 @@ export class ParkingScene extends Phaser.Scene {
 
     if (this.dialogueRunner.isOpen()) {
       this.player.setVelocity(0, 0);
+      this.promptText.setText("Натисни E, щоб далі").setVisible(true);
+      this.touchInteraction?.setLabel("Далі");
       if (interactPressed) this.advanceDialogue();
       return;
     }
 
     const target = this.findPromptTarget();
     if (target) {
-      this.showInteractionPrompt("E — поговорити", target.id);
+      this.touchInteraction?.setLabel("Говорити");
+      this.showInteractionPrompt("Натисни E, щоб говорити", target.id);
       if (interactPressed) this.startDialogue(target);
     } else {
       this.hideInteractionPrompt();
@@ -248,7 +270,9 @@ export class ParkingScene extends Phaser.Scene {
       ease: "Sine.easeInOut",
       onComplete: () => {
         this.car.setVisible(false);
-        this.updateStatusMirror("prompt", "Дімон поїхав", "dimon");
+        if (!this.dialogueRunner.isOpen()) {
+          this.updateStatusMirror("prompt", "Дімон поїхав", "dimon");
+        }
       }
     });
   }
@@ -269,12 +293,18 @@ export class ParkingScene extends Phaser.Scene {
     if (!line || !this.activeTarget) return;
 
     this.promptText.setVisible(false);
-    this.dialogueName.setText(line.speaker);
+    const speakerLabel = speakerLabelFor(line);
+    this.dialogueName.setText(speakerLabel);
     this.dialogueBody.setText(line.text);
+    this.dialogueBody.setY(speakerLabel.length > 0 ? 448 : 420);
     this.dialoguePanel.setVisible(true);
-    this.dialogueName.setVisible(true);
+    this.dialogueName.setVisible(speakerLabel.length > 0);
     this.dialogueBody.setVisible(true);
-    this.updateStatusMirror("dialogue", `${line.speaker}: ${line.text}`, this.activeTarget.id);
+    this.updateStatusMirror(
+      "dialogue",
+      speakerLabel ? `${speakerLabel}: ${line.text}` : line.text,
+      this.activeTarget.id
+    );
   }
 
   private closeDialogue(): void {
@@ -291,6 +321,7 @@ export class ParkingScene extends Phaser.Scene {
 
   private hideInteractionPrompt(): void {
     this.promptText.setVisible(false);
+    this.touchInteraction?.setLabel("E");
     this.updateStatusMirror("ready", "Парковка");
   }
 
@@ -308,6 +339,17 @@ export class ParkingScene extends Phaser.Scene {
       stroke: "#171b18",
       strokeThickness: 3
     }).setOrigin(0.5).setDepth(10);
+  }
+
+  private createCar(x: number, y: number, color: number, accent: number): Phaser.GameObjects.Container {
+    const body = this.add.rectangle(0, 0, 54, 28, color).setStrokeStyle(3, accent);
+    const windshield = this.add.rectangle(-12, -6, 11, 7, 0xd9f4ff);
+    const window = this.add.rectangle(10, -6, 12, 7, 0xd9f4ff);
+    const frontWheel = this.add.rectangle(-16, 15, 10, 5, 0x111111);
+    const backWheel = this.add.rectangle(16, 15, 10, 5, 0x111111);
+    const light = this.add.rectangle(25, 2, 4, 6, 0xffe08a);
+
+    return this.add.container(x, y, [body, windshield, window, frontWheel, backWheel, light]).setDepth(12);
   }
 
   private createTextures(): void {

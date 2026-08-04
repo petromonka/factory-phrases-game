@@ -6367,10 +6367,66 @@
                                            "visible":  true
                                        }
                                    ]
+                   },
+                   {
+                       "id":  9,
+                       "name":  "parked-cars",
+                       "type":  "objectgroup",
+                       "x":  0,
+                       "y":  0,
+                       "opacity":  1,
+                       "visible":  true,
+                       "draworder":  "topdown",
+                       "objects":  [
+                                       {
+                                           "id":  14,
+                                           "name":  "parked-car-1",
+                                           "type":  "parked-car",
+                                           "x":  160,
+                                           "y":  112,
+                                           "width":  50,
+                                           "height":  28,
+                                           "rotation":  0,
+                                           "visible":  true
+                                       },
+                                       {
+                                           "id":  15,
+                                           "name":  "parked-car-2",
+                                           "type":  "parked-car",
+                                           "x":  256,
+                                           "y":  112,
+                                           "width":  50,
+                                           "height":  28,
+                                           "rotation":  0,
+                                           "visible":  true
+                                       },
+                                       {
+                                           "id":  16,
+                                           "name":  "parked-car-3",
+                                           "type":  "parked-car",
+                                           "x":  496,
+                                           "y":  288,
+                                           "width":  50,
+                                           "height":  28,
+                                           "rotation":  0,
+                                           "visible":  true
+                                       },
+                                       {
+                                           "id":  17,
+                                           "name":  "parked-car-4",
+                                           "type":  "parked-car",
+                                           "x":  592,
+                                           "y":  288,
+                                           "width":  50,
+                                           "height":  28,
+                                           "rotation":  0,
+                                           "visible":  true
+                                       }
+                                   ]
                    }
                ],
-    "nextlayerid":  9,
-    "nextobjectid":  14,
+    "nextlayerid":  10,
+    "nextobjectid":  18,
     "orientation":  "orthogonal",
     "renderorder":  "right-down",
     "tiledversion":  "1.11.0",

@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { CHARACTERS } from "./characters";
 import { AmbientDialogueState } from "./controllerDialogue";
 import { CONTROLLERS } from "./controllers";
-import { DialogueRunner, type DialogueDefinition } from "./dialogue";
+import { DialogueRunner, speakerLabelFor, type DialogueDefinition } from "./dialogue";
 import { renderFatalError } from "./errorScreen";
 import { EdgeTrigger, nearestInteractable } from "./interaction";
 import { movementVector } from "./movement";
@@ -15,7 +15,7 @@ const TILESET_KEY = "factory-tiles";
 const MOVEMENT_SPEED = 160;
 
 type TiledProperty = { name: string; value: unknown };
-type TouchInteractionSource = { consumePressed(): boolean };
+type TouchInteractionSource = { consumePressed(): boolean; setLabel(label: string): void };
 
 function getProperty(object: Phaser.Types.Tilemaps.TiledObject, name: string): unknown {
   const properties = object.properties as TiledProperty[] | undefined;
@@ -67,6 +67,7 @@ export class FactoryScene extends Phaser.Scene {
   private touchInteraction?: TouchInteractionSource;
   private npcs: NpcTarget[] = [];
   private exitPoint?: { x: number; y: number };
+  private exitDoor?: Phaser.GameObjects.Container;
   private readonly ambientDialogueState = new AmbientDialogueState();
   private readonly dialogueRunner = new DialogueRunner();
   private readonly interactionTrigger = new EdgeTrigger();
@@ -166,10 +167,12 @@ export class FactoryScene extends Phaser.Scene {
       this.interactKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
 
       this.createInterface();
+      this.exitDoor = this.createExitDoor(this.exitPoint.x, this.exitPoint.y);
       const existingProgress = this.registry.get("runProgress") as RunProgress | undefined;
       this.progressModel = existingProgress ?? new RunProgress(CHARACTERS.map((character) => character.id));
       this.registry.set("runProgress", this.progressModel);
       this.updateCounter();
+      this.setExitDoorVisible(this.progressModel.isParkingUnlocked());
 
       this.cameras.main
         .setBounds(0, 0, map.widthInPixels, map.heightInPixels)
@@ -192,6 +195,8 @@ export class FactoryScene extends Phaser.Scene {
 
     if (this.dialogueRunner.isOpen()) {
       this.player.setVelocity(0, 0);
+      this.promptText.setText("Натисни E, щоб далі").setVisible(true);
+      this.touchInteraction?.setLabel("Далі");
       if (interactPressed) this.advanceDialogue();
       return;
     }
@@ -199,7 +204,8 @@ export class FactoryScene extends Phaser.Scene {
     const exitAvailable = this.progressModel.isParkingUnlocked() && this.isNearExit();
     if (exitAvailable) {
       this.activePromptTarget = undefined;
-      this.showInteractionPrompt("E — вийти на парковку", "exit-prompt");
+      this.touchInteraction?.setLabel("Парковка");
+      this.showInteractionPrompt("Натисни E, щоб вийти на парковку", "exit-prompt");
       if (interactPressed) {
         this.dialogueRunner.close();
         this.interactionTrigger.reset();
@@ -208,7 +214,8 @@ export class FactoryScene extends Phaser.Scene {
     } else {
       this.activePromptTarget = this.findPromptTarget();
       if (this.activePromptTarget) {
-        this.showInteractionPrompt("E — поговорити", "prompt", this.activePromptTarget.id);
+        this.touchInteraction?.setLabel("Говорити");
+        this.showInteractionPrompt("Натисни E, щоб говорити", "prompt", this.activePromptTarget.id);
         if (interactPressed) this.startDialogue(this.activePromptTarget);
       } else {
         this.hideInteractionPrompt();
@@ -322,6 +329,7 @@ export class FactoryScene extends Phaser.Scene {
       if (!this.completionShown && this.progressModel.isParkingUnlocked()) {
         this.completionShown = true;
         this.completionText.setVisible(true);
+        this.setExitDoorVisible(true);
         this.time.delayedCall(6000, () => this.completionText.setVisible(false));
       }
     }
@@ -339,12 +347,18 @@ export class FactoryScene extends Phaser.Scene {
     if (!line || !this.activeDialogueTarget) return;
 
     this.promptText.setVisible(false);
-    this.dialogueName.setText(line.speaker);
+    const speakerLabel = speakerLabelFor(line);
+    this.dialogueName.setText(speakerLabel);
     this.dialogueBody.setText(line.text);
+    this.dialogueBody.setY(speakerLabel.length > 0 ? 450 : 420);
     this.dialoguePanel.setVisible(true);
-    this.dialogueName.setVisible(true);
+    this.dialogueName.setVisible(speakerLabel.length > 0);
     this.dialogueBody.setVisible(true);
-    this.updateStatusMirror("dialogue", `${line.speaker}: ${line.text}`, this.activeDialogueTarget.id);
+    this.updateStatusMirror(
+      "dialogue",
+      speakerLabel ? `${speakerLabel}: ${line.text}` : line.text,
+      this.activeDialogueTarget.id
+    );
   }
 
   private showInteractionPrompt(text: string, state: "prompt" | "exit-prompt", characterId?: string): void {
@@ -354,6 +368,7 @@ export class FactoryScene extends Phaser.Scene {
 
   private hideInteractionPrompt(): void {
     this.promptText.setVisible(false);
+    this.touchInteraction?.setLabel("E");
     this.updateStatusMirror("ready", "Гра готова");
   }
 
@@ -363,6 +378,24 @@ export class FactoryScene extends Phaser.Scene {
     this.dialogueBody.setVisible(false);
     this.activeDialogueTarget = undefined;
     this.ambientDialogueState.leave();
+  }
+
+  private createExitDoor(x: number, y: number): Phaser.GameObjects.Container {
+    const panel = this.add.rectangle(0, 0, 56, 44, 0x3f4b55, 0.95).setStrokeStyle(3, 0xf0d18a);
+    const opening = this.add.rectangle(0, 9, 34, 24, 0x151b18, 1);
+    const label = this.add.text(0, -24, "Парковка", {
+      fontFamily: '"Courier New", monospace',
+      fontSize: "14px",
+      color: "#fff4dc",
+      stroke: "#171b18",
+      strokeThickness: 3
+    }).setOrigin(0.5);
+
+    return this.add.container(x, y - 20, [panel, opening, label]).setDepth(18).setVisible(false);
+  }
+
+  private setExitDoorVisible(visible: boolean): void {
+    this.exitDoor?.setVisible(visible);
   }
 
   private createPlayerTextures(): void {

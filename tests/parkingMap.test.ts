@@ -25,3 +25,12 @@ it("contains required parking layers and objects", () => {
   expect(layers.get("tent")?.objects?.map((object) => object.name)).toContain("warehouse-tent");
   expect(layers.get("collisions")?.objects?.length).toBeGreaterThan(4);
 });
+
+it("contains multiple parked car objects for a real parking feel", () => {
+  const map = readParkingMap();
+  const parkingCars = map.layers
+    .find((layer) => layer.name === "parked-cars")
+    ?.objects?.filter((object) => object.type === "parked-car") ?? [];
+
+  expect(parkingCars).toHaveLength(4);
+});

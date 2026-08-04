@@ -105,3 +105,17 @@ it("does not open dialogue from proximity alone in FactoryScene", () => {
   expect(source).not.toContain("ProgressStore");
   expect(source).not.toContain("localStorage");
 });
+
+it("draws an unlocked factory exit door and uses clear interaction copy", () => {
+  const source = readFileSync("src/game/FactoryScene.ts", "utf8");
+
+  expect(source).toContain("createExitDoor");
+  expect(source).toContain("setExitDoorVisible");
+  expect(source).toContain("Натисни E, щоб говорити");
+  expect(source).toContain("Натисни E, щоб далі");
+  expect(source).toContain("Натисни E, щоб вийти на парковку");
+  expect(source).toContain('setLabel("Говорити")');
+  expect(source).toContain('setLabel("Далі")');
+  expect(source).toContain('setLabel("Парковка")');
+  expect(source).toContain("speakerLabelFor(line)");
+});

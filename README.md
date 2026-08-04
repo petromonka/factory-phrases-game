@@ -21,7 +21,7 @@ Open the local address printed by Vite in a browser.
 - Move with `W`, `A`, `S`, and `D`, or the arrow keys.
 - Press `E` near a character to start dialogue.
 - Press `E` again to advance one dialogue line at a time.
-- On a phone, rotate to landscape, use the lower-left joystick to move, and use the lower-right `E` button to interact.
+- On a phone, rotate to landscape. The lower-left joystick moves the character, and the lower-right action button changes between `Говорити`, `Далі`, and `Парковка` depending on what you can do.
 
 The first level unlocks the parking exit after all five main factory conversations and at least one sewing-line controller request. Progress is kept only for the current page session, so each reload starts again from the KPP.
 
@@ -48,7 +48,7 @@ Build for Pages with:
 npm run build:pages
 ```
 
-Deploy the generated `dist/` files with the `/factory-phrases-game/` base path. On a phone, open the same GitHub Pages URL in landscape mode; movement uses the lower-left joystick and interaction uses the lower-right `E` button.
+Deploy the generated `dist/` files with the `/factory-phrases-game/` base path. On a phone, open the same GitHub Pages URL in landscape mode; movement uses the lower-left joystick and interaction uses the lower-right action button.
 
 ## Browser Smoke Test
 

@@ -69,3 +69,7 @@ export class DialogueRunner {
 export function createSingleLineDialogue(name: string, text: string): DialogueDefinition {
   return { id: name, lines: [{ speaker: name, text }] };
 }
+
+export function speakerLabelFor(line: DialogueLine): string {
+  return line.speaker === "Я" ? "" : line.speaker;
+}
