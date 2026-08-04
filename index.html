@@ -7,10 +7,12 @@
   </head>
   <body>
     <main id="game"></main>
-    <div id="touch-joystick" aria-label="Керування рухом" hidden>
-      <div id="touch-joystick-knob"></div>
+    <div id="mobile-controls-zone">
+      <div id="touch-joystick" aria-label="Керування рухом" hidden>
+        <div id="touch-joystick-knob"></div>
+      </div>
+      <button id="touch-interaction" type="button" aria-label="Взаємодія" hidden>E</button>
     </div>
-    <button id="touch-interaction" type="button" aria-label="Взаємодія" hidden>E</button>
     <p id="orientation-hint" role="status">Поверніть телефон горизонтально</p>
     <p id="game-status" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true" data-game-state="loading">
       Завантаження гри

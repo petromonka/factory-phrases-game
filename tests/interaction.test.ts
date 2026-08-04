@@ -119,3 +119,11 @@ it("draws an unlocked factory exit door and uses clear interaction copy", () => 
   expect(source).toContain('setLabel("Парковка")');
   expect(source).toContain("speakerLabelFor(line)");
 });
+
+it("positions factory dialogue UI from the current scale size", () => {
+  const source = readFileSync("src/game/FactoryScene.ts", "utf8");
+
+  expect(source).toContain("const width = this.scale.width");
+  expect(source).toContain("const height = this.scale.height");
+  expect(source).toContain("height -");
+});

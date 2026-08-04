@@ -36,3 +36,12 @@ it("uses mobile-safe layout rules for touch controls and portrait mode", () => {
   expect(css).toContain("@media (pointer: coarse) and (orientation: portrait)");
   expect(css).toContain("font-size: clamp(");
 });
+
+it("reserves a portrait phone control deck below the game canvas", () => {
+  const css = readFileSync("src/style.css", "utf8");
+
+  expect(css).toContain("--mobile-controls-height");
+  expect(css).toContain("#mobile-controls-zone");
+  expect(css).toContain("height: calc(100svh - var(--mobile-controls-height))");
+  expect(css).toContain("bottom: calc(var(--mobile-controls-height)");
+});

@@ -296,7 +296,8 @@ export class ParkingScene extends Phaser.Scene {
     const speakerLabel = speakerLabelFor(line);
     this.dialogueName.setText(speakerLabel);
     this.dialogueBody.setText(line.text);
-    this.dialogueBody.setY(speakerLabel.length > 0 ? 448 : 420);
+    const height = this.scale.height;
+    this.dialogueBody.setY(speakerLabel.length > 0 ? height - 92 : height - 120);
     this.dialoguePanel.setVisible(true);
     this.dialogueName.setVisible(speakerLabel.length > 0);
     this.dialogueBody.setVisible(true);
@@ -374,6 +375,11 @@ export class ParkingScene extends Phaser.Scene {
   }
 
   private createInterface(): void {
+    const width = this.scale.width;
+    const height = this.scale.height;
+    const panelWidth = Math.min(width - 48, 680);
+    const textX = Math.max(28, (width - panelWidth) / 2 + 28);
+    const textWidth = panelWidth - 88;
     const fixedText = {
       fontFamily: '"Courier New", monospace',
       color: "#fff4dc",
@@ -382,24 +388,24 @@ export class ParkingScene extends Phaser.Scene {
     };
 
     this.promptText = this.add
-      .text(480, 478, "", { ...fixedText, backgroundColor: "#24303a", fontSize: "18px", padding: { x: 12, y: 7 } })
+      .text(width / 2, height - 62, "", { ...fixedText, backgroundColor: "#24303a", fontSize: "18px", padding: { x: 12, y: 7 } })
       .setDepth(1001)
       .setOrigin(0.5)
       .setScrollFactor(0)
       .setVisible(false);
     this.dialoguePanel = this.add
-      .rectangle(480, 450, 640, 150, 0x151b18, 0.96)
+      .rectangle(width / 2, height - 90, panelWidth, 150, 0x151b18, 0.96)
       .setDepth(1000)
       .setScrollFactor(0)
       .setStrokeStyle(4, 0xe6b566)
       .setVisible(false);
     this.dialogueName = this.add
-      .text(180, 390, "", { ...fixedText, color: "#ffd37c", fontSize: "20px" })
+      .text(textX, height - 150, "", { ...fixedText, color: "#ffd37c", fontSize: "20px" })
       .setDepth(1001)
       .setScrollFactor(0)
       .setVisible(false);
     this.dialogueBody = this.add
-      .text(180, 448, "", { ...fixedText, fontSize: "17px", lineSpacing: 4, wordWrap: { width: 560, useAdvancedWrap: true } })
+      .text(textX, height - 92, "", { ...fixedText, fontSize: "17px", lineSpacing: 4, wordWrap: { width: textWidth, useAdvancedWrap: true } })
       .setDepth(1001)
       .setScrollFactor(0)
       .setVisible(false);
