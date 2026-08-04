@@ -158,13 +158,14 @@ test("moves from the mobile joystick and interacts with the mobile E button", as
 
   await expect(joystick).toBeVisible();
   await expect(interaction).toBeVisible();
-  await expect(orientationHint).toBeVisible();
-  await expect(orientationHint).toHaveText("Поверніть телефон горизонтально");
-  await expect(status).toHaveAttribute("data-game-state", "ready");
-  await page.setViewportSize({ width: 915, height: 412 });
   await expect(orientationHint).toBeHidden();
+  await expect(status).toHaveAttribute("data-game-state", "ready");
+  const canvasBox = await page.locator("canvas").boundingBox();
+  const joystickBox = await joystick.boundingBox();
+  if (!canvasBox || !joystickBox) throw new Error("Mobile canvas or joystick is missing a bounding box");
+  expect(joystickBox.y).toBeGreaterThanOrEqual(canvasBox.y + canvasBox.height - 1);
 
-  const box = await joystick.boundingBox();
+  const box = joystickBox;
   if (!box) throw new Error("Joystick has no bounding box");
   const center = {
     x: box.x + box.width / 2,
@@ -218,16 +219,19 @@ test("moves from the mobile joystick and interacts with the mobile E button", as
   expect(pageErrors).toEqual([]);
 });
 
-test("hides the portrait orientation hint in landscape", async ({ page }, testInfo) => {
+test("keeps the phone game in portrait with controls below the canvas", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile-chromium");
   const pageErrors: Error[] = [];
   page.on("pageerror", (error) => pageErrors.push(error));
   await page.goto("/factory-phrases-game/");
 
   const orientationHint = page.locator("#orientation-hint");
-  await expect(orientationHint).toBeVisible();
-  await page.setViewportSize({ width: 915, height: 412 });
   await expect(orientationHint).toBeHidden();
+  const canvasBox = await page.locator("canvas").boundingBox();
+  const controlsBox = await page.locator("#mobile-controls-zone").boundingBox();
+  if (!canvasBox || !controlsBox) throw new Error("Mobile layout boxes are missing");
+  expect(canvasBox.height).toBeGreaterThan(canvasBox.width);
+  expect(controlsBox.y).toBeGreaterThanOrEqual(canvasBox.y + canvasBox.height - 1);
   expect(pageErrors).toEqual([]);
 });
 

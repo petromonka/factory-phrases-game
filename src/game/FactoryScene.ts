@@ -350,7 +350,8 @@ export class FactoryScene extends Phaser.Scene {
     const speakerLabel = speakerLabelFor(line);
     this.dialogueName.setText(speakerLabel);
     this.dialogueBody.setText(line.text);
-    this.dialogueBody.setY(speakerLabel.length > 0 ? 450 : 420);
+    const height = this.scale.height;
+    this.dialogueBody.setY(speakerLabel.length > 0 ? height - 90 : height - 120);
     this.dialoguePanel.setVisible(true);
     this.dialogueName.setVisible(speakerLabel.length > 0);
     this.dialogueBody.setVisible(true);
@@ -462,6 +463,11 @@ export class FactoryScene extends Phaser.Scene {
   }
 
   private createInterface(): void {
+    const width = this.scale.width;
+    const height = this.scale.height;
+    const panelWidth = Math.min(width - 48, 640);
+    const textX = Math.max(28, (width - panelWidth) / 2 + 28);
+    const textWidth = panelWidth - 96;
     const fixedText = {
       fontFamily: '"Courier New", monospace',
       color: "#fff4dc",
@@ -474,7 +480,7 @@ export class FactoryScene extends Phaser.Scene {
       .setDepth(1000)
       .setScrollFactor(0);
     this.promptText = this.add
-      .text(480, 478, "", {
+      .text(width / 2, height - 62, "", {
         ...fixedText,
         backgroundColor: "#24303a",
         fontSize: "18px",
@@ -485,28 +491,28 @@ export class FactoryScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setVisible(false);
     this.dialoguePanel = this.add
-      .rectangle(480, 450, 600, 146, 0x151b18, 0.96)
+      .rectangle(width / 2, height - 90, panelWidth, 146, 0x151b18, 0.96)
       .setDepth(1000)
       .setScrollFactor(0)
       .setStrokeStyle(4, 0xe6b566)
       .setVisible(false);
     this.dialogueName = this.add
-      .text(200, 391, "", { ...fixedText, color: "#ffd37c", fontSize: "20px" })
+      .text(textX, height - 149, "", { ...fixedText, color: "#ffd37c", fontSize: "20px" })
       .setDepth(1001)
       .setScrollFactor(0)
       .setVisible(false);
     this.dialogueBody = this.add
-      .text(200, 450, "", {
+      .text(textX, height - 90, "", {
         ...fixedText,
         fontSize: "18px",
         lineSpacing: 4,
-        wordWrap: { width: 500, useAdvancedWrap: true }
+        wordWrap: { width: textWidth, useAdvancedWrap: true }
       })
       .setDepth(1001)
       .setScrollFactor(0)
       .setVisible(false);
     this.completionText = this.add
-      .text(480, 52, "Є всі фрази і заявка з лінії. Можна виходити на парковку.", {
+      .text(width / 2, 52, "Є всі фрази і заявка з лінії. Можна виходити на парковку.", {
         ...fixedText,
         backgroundColor: "#24392c",
         color: "#f8d98a",

@@ -23,3 +23,11 @@ it("defines Dimon's two-line departure dialogue and grouped car behavior", () =>
   expect(source).toContain("Натисни E, щоб говорити");
   expect(source).toContain("Натисни E, щоб далі");
 });
+
+it("positions parking dialogue UI from the current scale size", () => {
+  const source = readFileSync("src/game/ParkingScene.ts", "utf8");
+
+  expect(source).toContain("const width = this.scale.width");
+  expect(source).toContain("const height = this.scale.height");
+  expect(source).toContain("height -");
+});
