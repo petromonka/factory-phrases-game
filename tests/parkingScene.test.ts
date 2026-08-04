@@ -23,10 +23,25 @@ it("requires entering the player car before the work-hours finale", () => {
   expect(source).toContain("readyForFinalCar");
   expect(source).toContain("findFinalCarTarget");
   expect(source).toContain("startWorktimeFinale");
+  expect(source).toContain("directorGatePoint");
+  expect(source).toContain("directorRunning");
+  expect(source).toContain("Директор");
+  expect(source).toContain("Директор біжить від воріт");
   expect(source).toContain("npc-worktime");
   expect(source).toContain("Натисни E, щоб сісти в машину");
   expect(source).toContain("Робочий час з 9 до 17:30!");
+  expect(source).toContain("targets: this.worktimeSprite");
   expect(source).toContain("showFinale()");
+});
+
+it("renders several trucks on the parking territory", () => {
+  const source = readFileSync("src/game/ParkingScene.ts", "utf8");
+
+  expect(source).toContain("parkingTrucks");
+  expect(source).toContain("createTruck");
+  expect(source).toContain("this.createTruck(128, 208");
+  expect(source).toContain("this.createTruck(448, 128");
+  expect(source).toContain("this.createTruck(816, 384");
 });
 
 it("defines Dimon's two-line departure dialogue and grouped car behavior", () => {
