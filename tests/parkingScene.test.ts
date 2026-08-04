@@ -39,6 +39,15 @@ it("does not draw a separate advance prompt over the parking dialogue body", () 
   expect(source).toContain('touchInteraction?.setLabel("Далі")');
 });
 
+it("renders a dialogue footer that explains desktop E and mobile Dali controls", () => {
+  const source = readFileSync("src/game/ParkingScene.ts", "utf8");
+
+  expect(source).toContain("dialogueHint");
+  expect(source).toContain("dialogueAdvanceHint()");
+  expect(source).toContain("Натисни E, щоб далі");
+  expect(source).toContain("Натисни кнопку «Далі»");
+});
+
 it("uses Dimon's transparent BYD image asset for the departing car", () => {
   const source = readFileSync("src/game/ParkingScene.ts", "utf8");
 

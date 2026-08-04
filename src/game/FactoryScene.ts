@@ -17,6 +17,11 @@ const MOVEMENT_SPEED = 160;
 type TiledProperty = { name: string; value: unknown };
 type TouchInteractionSource = { consumePressed(): boolean; setLabel(label: string): void };
 
+function dialogueAdvanceHint(): string {
+  const hasCoarsePointer = globalThis.matchMedia?.("(pointer: coarse)").matches ?? false;
+  return hasCoarsePointer ? "Натисни кнопку «Далі»" : "Натисни E, щоб далі";
+}
+
 function getProperty(object: Phaser.Types.Tilemaps.TiledObject, name: string): unknown {
   const properties = object.properties as TiledProperty[] | undefined;
   return properties?.find((property) => property.name === name)?.value;
@@ -80,6 +85,7 @@ export class FactoryScene extends Phaser.Scene {
   private dialoguePanel!: Phaser.GameObjects.Rectangle;
   private dialogueName!: Phaser.GameObjects.Text;
   private dialogueBody!: Phaser.GameObjects.Text;
+  private dialogueHint!: Phaser.GameObjects.Text;
   private completionText!: Phaser.GameObjects.Text;
 
   public constructor() {
@@ -350,11 +356,13 @@ export class FactoryScene extends Phaser.Scene {
     const speakerLabel = speakerLabelFor(line);
     this.dialogueName.setText(speakerLabel);
     this.dialogueBody.setText(line.text);
+    this.dialogueHint.setText(dialogueAdvanceHint());
     const height = this.scale.height;
-    this.dialogueBody.setY(speakerLabel.length > 0 ? height - 90 : height - 120);
+    this.dialogueBody.setY(speakerLabel.length > 0 ? height - 104 : height - 124);
     this.dialoguePanel.setVisible(true);
     this.dialogueName.setVisible(speakerLabel.length > 0);
     this.dialogueBody.setVisible(true);
+    this.dialogueHint.setVisible(true);
     this.updateStatusMirror(
       "dialogue",
       speakerLabel ? `${speakerLabel}: ${line.text}` : line.text,
@@ -377,6 +385,7 @@ export class FactoryScene extends Phaser.Scene {
     this.dialoguePanel.setVisible(false);
     this.dialogueName.setVisible(false);
     this.dialogueBody.setVisible(false);
+    this.dialogueHint.setVisible(false);
     this.activeDialogueTarget = undefined;
     this.ambientDialogueState.leave();
   }
@@ -491,7 +500,7 @@ export class FactoryScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setVisible(false);
     this.dialoguePanel = this.add
-      .rectangle(width / 2, height - 90, panelWidth, 146, 0x151b18, 0.96)
+      .rectangle(width / 2, height - 94, panelWidth, 166, 0x151b18, 0.96)
       .setDepth(1000)
       .setScrollFactor(0)
       .setStrokeStyle(4, 0xe6b566)
@@ -509,6 +518,17 @@ export class FactoryScene extends Phaser.Scene {
         wordWrap: { width: textWidth, useAdvancedWrap: true }
       })
       .setDepth(1001)
+      .setScrollFactor(0)
+      .setVisible(false);
+    this.dialogueHint = this.add
+      .text(width / 2 + panelWidth / 2 - 28, height - 44, "", {
+        ...fixedText,
+        color: "#f8d98a",
+        fontSize: "15px",
+        strokeThickness: 3
+      })
+      .setDepth(1001)
+      .setOrigin(1, 0.5)
       .setScrollFactor(0)
       .setVisible(false);
     this.completionText = this.add
@@ -562,6 +582,7 @@ export class FactoryScene extends Phaser.Scene {
     } else {
       delete status.dataset.characterId;
     }
-    status.textContent = `${this.counterText?.text ?? ""} ${text}`.trim();
+    const hint = state === "dialogue" ? ` ${dialogueAdvanceHint()}` : "";
+    status.textContent = `${this.counterText?.text ?? ""} ${text}${hint}`.trim();
   }
 }

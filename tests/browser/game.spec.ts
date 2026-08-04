@@ -164,6 +164,8 @@ test("moves from the mobile joystick and interacts with the mobile E button", as
   const joystickBox = await joystick.boundingBox();
   if (!canvasBox || !joystickBox) throw new Error("Mobile canvas or joystick is missing a bounding box");
   expect(joystickBox.y).toBeGreaterThanOrEqual(canvasBox.y + canvasBox.height - 1);
+  expect(joystickBox.width).toBeGreaterThanOrEqual(170);
+  expect(joystickBox.height).toBeGreaterThanOrEqual(170);
 
   const box = joystickBox;
   if (!box) throw new Error("Joystick has no bounding box");
@@ -201,6 +203,8 @@ test("moves from the mobile joystick and interacts with the mobile E button", as
   await expect(interaction).toHaveText("Говорити");
   const interactionBox = await interaction.boundingBox();
   if (!interactionBox) throw new Error("Interaction button has no bounding box");
+  expect(interactionBox.width).toBeGreaterThanOrEqual(120);
+  expect(interactionBox.height).toBeGreaterThanOrEqual(120);
   await interaction.dispatchEvent("pointerdown", {
     pointerId: 2,
     pointerType: "touch",
@@ -216,6 +220,7 @@ test("moves from the mobile joystick and interacts with the mobile E button", as
   await expect(status).toHaveAttribute("data-game-state", "dialogue");
   await expect(interaction).toHaveText("Далі");
   await expect(status).toContainText("Привіт, Сєрий");
+  await expect(status).toContainText("Натисни кнопку «Далі»");
   expect(pageErrors).toEqual([]);
 });
 
