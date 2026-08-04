@@ -20,6 +20,7 @@ type FactorySceneWithPlayer = Phaser.Scene & {
 
 type FactoryTestWindow = Window & {
   __factoryTestPositionPlayer?: (x: number, y: number) => void;
+  __factoryTestPlayerPosition?: () => { x: number; y: number };
   __factoryTestUnlockParking?: () => void;
   __factoryTestPositionParkingPlayer?: (x: number, y: number) => void;
 };
@@ -72,6 +73,14 @@ if (import.meta.env.VITE_TEST_HOOKS === "1") {
 
     scene.player.setPosition(x, y);
     scene.player.body?.reset(x, y);
+  };
+  (window as FactoryTestWindow).__factoryTestPlayerPosition = () => {
+    const scene = game.scene.getScene("factory") as FactorySceneWithPlayer;
+    if (!scene.player) {
+      throw new Error("Factory player is not ready");
+    }
+
+    return { x: scene.player.x, y: scene.player.y };
   };
   (window as FactoryTestWindow).__factoryTestUnlockParking = () => {
     const existing = game.registry.get("runProgress") as RunProgress | undefined;

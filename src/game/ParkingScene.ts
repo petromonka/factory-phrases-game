@@ -270,7 +270,9 @@ export class ParkingScene extends Phaser.Scene {
       ease: "Sine.easeInOut",
       onComplete: () => {
         this.car.setVisible(false);
-        this.updateStatusMirror("prompt", "Дімон поїхав", "dimon");
+        if (!this.dialogueRunner.isOpen()) {
+          this.updateStatusMirror("prompt", "Дімон поїхав", "dimon");
+        }
       }
     });
   }
