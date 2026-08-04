@@ -6,6 +6,10 @@ import {
   type MovementSource,
   type TouchController
 } from "./game/touchController";
+import {
+  createTouchInteractionButton,
+  type TouchInteractionSource
+} from "./game/touchInteraction";
 import "./style.css";
 
 type FactorySceneWithPlayer = Phaser.Scene & {
@@ -18,8 +22,11 @@ type FactoryTestWindow = Window & {
 
 const joystick = document.getElementById("touch-joystick");
 const joystickKnob = document.getElementById("touch-joystick-knob");
+const interactionButton = document.getElementById("touch-interaction");
 let controller: TouchController | undefined;
+let interactionController: TouchInteractionSource | undefined;
 let touchMovement: MovementSource = stoppedMovementSource;
+let touchInteraction: TouchInteractionSource | undefined;
 
 if (!joystick || !joystickKnob) {
   console.error(
@@ -34,9 +41,23 @@ if (!joystick || !joystickKnob) {
   }
 }
 
-const game = new Phaser.Game(createGameConfig("game", touchMovement));
+if (!interactionButton) {
+  console.error("Unable to initialize touch interaction: missing #touch-interaction.");
+} else {
+  try {
+    interactionController = createTouchInteractionButton(interactionButton);
+    touchInteraction = interactionController;
+  } catch (error) {
+    console.error("Unable to initialize touch interaction: button creation failed.", error);
+  }
+}
 
-window.addEventListener("pagehide", () => controller?.destroy(), { once: true });
+const game = new Phaser.Game(createGameConfig("game", touchMovement, touchInteraction));
+
+window.addEventListener("pagehide", () => {
+  controller?.destroy();
+  interactionController?.destroy();
+}, { once: true });
 
 if (import.meta.env.VITE_TEST_HOOKS === "1") {
   (window as FactoryTestWindow).__factoryTestPositionPlayer = (x, y) => {

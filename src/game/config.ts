@@ -2,10 +2,17 @@ import Phaser from "phaser";
 import { FactoryScene } from "./FactoryScene";
 import { stoppedMovementSource } from "./movement";
 import type { MovementSource } from "./touchController";
+import type { TouchInteractionSource } from "./touchInteraction";
+
+const stoppedInteractionSource: TouchInteractionSource = {
+  consumePressed: () => false,
+  destroy: () => undefined
+};
 
 export function createGameConfig(
   parent: string,
-  touchMovement: MovementSource = stoppedMovementSource
+  touchMovement: MovementSource = stoppedMovementSource,
+  touchInteraction: TouchInteractionSource = stoppedInteractionSource
 ): Phaser.Types.Core.GameConfig {
   return {
     type: Phaser.AUTO,
@@ -20,6 +27,7 @@ export function createGameConfig(
     callbacks: {
       preBoot(game) {
         game.registry.set("touchMovement", touchMovement);
+        game.registry.set("touchInteraction", touchInteraction);
       }
     }
   };

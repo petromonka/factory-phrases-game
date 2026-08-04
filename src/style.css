@@ -61,6 +61,32 @@ body {
   display: none !important;
 }
 
+#touch-interaction {
+  position: fixed;
+  right: calc(1rem + env(safe-area-inset-right));
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+  display: none;
+  width: 4.5rem;
+  height: 4.5rem;
+  border: 1px solid rgb(247 230 210 / 55%);
+  border-radius: 50%;
+  background: rgb(36 48 58 / 78%);
+  color: #fff4dc;
+  font: 800 1.45rem/1 system-ui, sans-serif;
+  touch-action: none;
+  user-select: none;
+  z-index: 20;
+}
+
+#touch-interaction.is-pressed {
+  background: rgb(230 181 102 / 82%);
+  color: #151b18;
+}
+
+#touch-interaction[hidden] {
+  display: none !important;
+}
+
 #orientation-hint {
   position: fixed;
   top: calc(1rem + env(safe-area-inset-top));
@@ -79,6 +105,10 @@ body {
 @media (pointer: coarse) {
   #touch-joystick {
     display: flex;
+  }
+
+  #touch-interaction {
+    display: block;
   }
 
   @media (orientation: portrait) {
