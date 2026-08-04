@@ -40,6 +40,13 @@ Dimon's light-blue car must behave as one visual object. Body, windows, wheels, 
 
 The car remains light blue and visually distinct from other parked cars.
 
+Dimon's parking conversation has two lines:
+
+1. `Не міган канєшно, але піде`
+2. `Ну все, я пігнав, якщо щось то не дзвоніть і не пишіть 😁`
+
+The car departure starts only after the second line is completed. The first line alone does not move or hide the car.
+
 ## Parking Visual Polish
 
 The parking scene should read as a real parking area:
