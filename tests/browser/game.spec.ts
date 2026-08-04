@@ -215,7 +215,8 @@ test("plays parking level and restarts from Yura", async ({ page }, testInfo) =>
   await positionParkingPlayer(page, 617, 302);
   await expect(status).toContainText("Натисни E, щоб сісти в машину");
   await pressInteractionKey(page);
-  await expect(status).toContainText("Робочий час з 9 до 17:30!");
+  await expect(status).toContainText("Директор біжить від воріт");
+  await expect(status).toContainText("Директор: Робочий час з 9 до 17:30!", { timeout: 3_000 });
   await pressInteractionKey(page);
   await expect(status).toHaveAttribute("data-game-state", "finale");
   await expect(status).toContainText("Ну всьо, всі діла порішав тепер можна і домів.");

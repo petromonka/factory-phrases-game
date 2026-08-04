@@ -51,7 +51,7 @@ const PARKING_DIALOGUES = {
   },
   worktime: {
     id: "parking-worktime",
-    lines: [{ speaker: "Тип", text: "Робочий час з 9 до 17:30!" }]
+    lines: [{ speaker: "Директор", text: "Робочий час з 9 до 17:30!" }]
   }
 } as const satisfies Record<string, DialogueDefinition>;
 
@@ -75,10 +75,13 @@ export class ParkingScene extends Phaser.Scene {
   private activeTarget?: ParkingTarget;
   private car!: Phaser.GameObjects.Image | Phaser.GameObjects.Container;
   private parkedCars: Phaser.GameObjects.Container[] = [];
+  private parkingTrucks: Phaser.GameObjects.Container[] = [];
   private finalCarPoint?: { x: number; y: number };
+  private readonly directorGatePoint = { x: 96, y: 520 };
   private worktimeSprite?: Phaser.GameObjects.Sprite;
   private dimonDeparted = false;
   private readyForFinalCar = false;
+  private directorRunning = false;
   private interactionNoticeUntil = 0;
   private finaleShown = false;
   private restartQueued = false;
@@ -152,6 +155,7 @@ export class ParkingScene extends Phaser.Scene {
 
       this.createTextures();
       this.renderTent(tentObject);
+      this.renderDirectorGate();
       this.car = this.createDimonCar(
         (carObject.x ?? 0) + (carObject.width ?? 48) / 2,
         (carObject.y ?? 0) + (carObject.height ?? 28) / 2
@@ -170,6 +174,11 @@ export class ParkingScene extends Phaser.Scene {
           parkedColors[index % parkedColors.length][1]
         ).setDepth(11)
       );
+      this.parkingTrucks = [
+        this.createTruck(128, 208, 0xd8d0bb, 0x596672),
+        this.createTruck(448, 128, 0xb9c7d3, 0x44505a),
+        this.createTruck(816, 384, 0xe0c082, 0x6c4d2e)
+      ];
       const finalCarObject = parkedCarLayer.objects.find((object) => object.name === "parked-car-4")
         ?? parkedCarLayer.objects.at(-1);
       this.finalCarPoint = {
@@ -184,7 +193,7 @@ export class ParkingScene extends Phaser.Scene {
       const dimon = this.add.sprite(dimonPoint.x, dimonPoint.y, "npc-dimon").setOrigin(0.5, 1).setDepth(20);
       const yura = this.add.sprite(yuraPoint.x, yuraPoint.y, "npc-yura").setOrigin(0.5, 1).setDepth(20);
       this.worktimeSprite = this.add
-        .sprite(this.finalCarPoint.x + 42, this.finalCarPoint.y + 24, "npc-worktime")
+        .sprite(this.directorGatePoint.x, this.directorGatePoint.y, "npc-worktime")
         .setOrigin(0.5, 1)
         .setDepth(20)
         .setVisible(false);
@@ -231,6 +240,12 @@ export class ParkingScene extends Phaser.Scene {
       this.promptText.setVisible(false);
       this.touchInteraction?.setLabel("Спочатку");
       if (this.restartKey.isDown || interactPressed) this.restartFactory();
+      return;
+    }
+
+    if (this.directorRunning) {
+      this.player.setVelocity(0, 0);
+      this.touchInteraction?.setLabel("...");
       return;
     }
 
@@ -349,15 +364,29 @@ export class ParkingScene extends Phaser.Scene {
   }
 
   private startWorktimeFinale(): void {
-    if (!this.worktimeSprite) return;
+    if (!this.worktimeSprite || !this.player) return;
 
     this.readyForFinalCar = false;
+    this.directorRunning = true;
     this.worktimeSprite.setVisible(true);
+    this.worktimeSprite.setPosition(this.directorGatePoint.x, this.directorGatePoint.y);
     this.activeTarget = this.targets.find((target) => target.id === "worktime");
     if (!this.activeTarget) return;
 
-    this.dialogueRunner.open(this.activeTarget.dialogue);
-    this.renderCurrentDialogueLine();
+    this.touchInteraction?.setLabel("...");
+    this.updateStatusMirror("prompt", "Директор біжить від воріт", "worktime");
+    this.tweens.add({
+      targets: this.worktimeSprite,
+      x: this.player.x + 28,
+      y: this.player.y + 12,
+      duration: 850,
+      ease: "Sine.easeOut",
+      onComplete: () => {
+        this.directorRunning = false;
+        this.dialogueRunner.open(this.activeTarget?.dialogue ?? PARKING_DIALOGUES.worktime);
+        this.renderCurrentDialogueLine();
+      }
+    });
   }
 
   private restartFactory(): void {
@@ -439,6 +468,25 @@ export class ParkingScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(10);
   }
 
+  private renderDirectorGate(): void {
+    const leftPost = this.add.rectangle(this.directorGatePoint.x - 28, this.directorGatePoint.y - 16, 10, 48, 0x38434a).setDepth(10);
+    const rightPost = this.add.rectangle(this.directorGatePoint.x + 28, this.directorGatePoint.y - 16, 10, 48, 0x38434a).setDepth(10);
+    const arm = this.add.rectangle(this.directorGatePoint.x, this.directorGatePoint.y - 34, 66, 8, 0xe6b566).setDepth(10);
+    this.add
+      .text(this.directorGatePoint.x, this.directorGatePoint.y - 62, "Ворота", {
+        fontFamily: '"Courier New", monospace',
+        fontSize: "15px",
+        color: "#fff4dc",
+        backgroundColor: "#24303a",
+        padding: { x: 6, y: 3 },
+        stroke: "#171b18",
+        strokeThickness: 2
+      })
+      .setOrigin(0.5)
+      .setDepth(11);
+    this.add.container(0, 0, [leftPost, rightPost, arm]).setDepth(10);
+  }
+
   private createCar(x: number, y: number, color: number, accent: number): Phaser.GameObjects.Container {
     const body = this.add.rectangle(0, 0, 54, 28, color).setStrokeStyle(3, accent);
     const windshield = this.add.rectangle(-12, -6, 11, 7, 0xd9f4ff);
@@ -448,6 +496,19 @@ export class ParkingScene extends Phaser.Scene {
     const light = this.add.rectangle(25, 2, 4, 6, 0xffe08a);
 
     return this.add.container(x, y, [body, windshield, window, frontWheel, backWheel, light]).setDepth(12);
+  }
+
+  private createTruck(x: number, y: number, color: number, accent: number): Phaser.GameObjects.Container {
+    const trailer = this.add.rectangle(-18, 0, 70, 30, color).setStrokeStyle(3, accent);
+    const cab = this.add.rectangle(32, 2, 24, 26, accent).setStrokeStyle(2, 0x1d252a);
+    const windshield = this.add.rectangle(38, -6, 10, 8, 0xd9f4ff);
+    const stripe = this.add.rectangle(-18, -2, 62, 4, 0xffffff, 0.38);
+    const wheel1 = this.add.rectangle(-42, 17, 12, 5, 0x111111);
+    const wheel2 = this.add.rectangle(-12, 17, 12, 5, 0x111111);
+    const wheel3 = this.add.rectangle(34, 17, 12, 5, 0x111111);
+    const light = this.add.rectangle(45, 4, 4, 6, 0xffe08a);
+
+    return this.add.container(x, y, [trailer, cab, windshield, stripe, wheel1, wheel2, wheel3, light]).setDepth(11);
   }
 
   private createDimonCar(x: number, y: number): Phaser.GameObjects.Image {
