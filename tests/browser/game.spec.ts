@@ -144,6 +144,8 @@ test("plays parking level and restarts from Yura", async ({ page }) => {
   await pressInteractionKey(page);
   await expect(status).toContainText("Не міган канєшно, але піде");
   await pressInteractionKey(page);
+  await expect(status).toContainText("Ну все, я пігнав, якщо щось то не дзвоніть і не пишіть");
+  await pressInteractionKey(page);
   await expect(status).toHaveAttribute("data-dimon-departed", "true", { timeout: 3_000 });
 
   await positionParkingPlayer(page, 792, 184);
