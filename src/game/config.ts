@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { FactoryScene } from "./FactoryScene";
+import { ParkingScene } from "./ParkingScene";
 import { stoppedMovementSource } from "./movement";
 import type { MovementSource } from "./touchController";
 import type { TouchInteractionSource } from "./touchInteraction";
@@ -23,7 +24,7 @@ export function createGameConfig(
     pixelArt: true,
     physics: { default: "arcade", arcade: { debug: false } },
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-    scene: [FactoryScene],
+    scene: [FactoryScene, ParkingScene],
     callbacks: {
       preBoot(game) {
         game.registry.set("touchMovement", touchMovement);
