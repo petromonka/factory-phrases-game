@@ -17,6 +17,18 @@ it("defines Dimon, Yura, car departure, and final restart behavior", () => {
   expect(source).toContain('this.scene.start("factory")');
 });
 
+it("requires entering the player car before the work-hours finale", () => {
+  const source = readFileSync("src/game/ParkingScene.ts", "utf8");
+
+  expect(source).toContain("readyForFinalCar");
+  expect(source).toContain("findFinalCarTarget");
+  expect(source).toContain("startWorktimeFinale");
+  expect(source).toContain("npc-worktime");
+  expect(source).toContain("Натисни E, щоб сісти в машину");
+  expect(source).toContain("Робочий час з 9 до 17:30!");
+  expect(source).toContain("showFinale()");
+});
+
 it("defines Dimon's two-line departure dialogue and grouped car behavior", () => {
   const source = readFileSync("src/game/ParkingScene.ts", "utf8");
 

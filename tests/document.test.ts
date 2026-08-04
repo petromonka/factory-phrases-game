@@ -21,6 +21,16 @@ it("provides touch controls and a portrait-orientation hint", () => {
   expect(styleSource).toContain("@media (pointer: coarse)");
 });
 
+it("shows the fiction disclaimer on the page", () => {
+  const documentSource = readFileSync("index.html", "utf8");
+  const styleSource = readFileSync("src/style.css", "utf8");
+
+  expect(documentSource).toContain('id="fiction-disclaimer"');
+  expect(documentSource).toContain("Усі персонажі вигадані");
+  expect(documentSource).toContain("будь-які збіги з реальними людьми чи подіями є випадковими");
+  expect(styleSource).toContain("#fiction-disclaimer");
+});
+
 it("contains the mobile interaction button and orientation hint copy", () => {
   document.body.innerHTML = readFileSync("index.html", "utf8");
 
