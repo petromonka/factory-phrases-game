@@ -169,7 +169,7 @@ it("contains every exact world-space sign", () => {
   const signs = layer(readMap(), "signs").objects ?? [];
 
   expect(signs).toEqual([
-    expect.objectContaining({ name: "factory-name", type: "sign", x: 144, y: 488, properties: [{ name: "text", type: "string", value: "Блядер" }] }),
+    expect.objectContaining({ name: "factory-name", type: "sign", x: 144, y: 488, properties: [{ name: "text", type: "string", value: "Бл*дер" }] }),
     expect.objectContaining({ name: "checkpoint", type: "sign", x: 144, y: 320, properties: [{ name: "text", type: "string", value: "KPP" }] }),
     expect.objectContaining({ name: "it-office", type: "sign", x: 208, y: 216, properties: [{ name: "text", type: "string", value: "IT" }] }),
     expect.objectContaining({ name: "shifts-office", type: "sign", x: 360, y: 216, properties: [{ name: "text", type: "string", value: "Відділ змін" }] }),

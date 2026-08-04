@@ -195,7 +195,7 @@ export class FactoryScene extends Phaser.Scene {
 
     if (this.dialogueRunner.isOpen()) {
       this.player.setVelocity(0, 0);
-      this.promptText.setText("Натисни E, щоб далі").setVisible(true);
+      this.promptText.setVisible(false);
       this.touchInteraction?.setLabel("Далі");
       if (interactPressed) this.advanceDialogue();
       return;
@@ -244,7 +244,7 @@ export class FactoryScene extends Phaser.Scene {
 
       this.add.text(object.x, object.y, text, {
         fontFamily: '"Courier New", monospace',
-        fontSize: text === "Блядер" ? "24px" : "15px",
+        fontSize: text === "Бл*дер" ? "24px" : "15px",
         color: "#fff4dc",
         backgroundColor: "#24303a",
         padding: { x: 6, y: 3 },
@@ -527,7 +527,7 @@ export class FactoryScene extends Phaser.Scene {
 
   private updateCounter(): void {
     const snapshot = this.progressModel.snapshot();
-    this.counterText.setText(`Фрази: ${snapshot.collectibleCount}/${snapshot.collectibleTotal}`);
+    this.counterText.setText(`Фрази: ${snapshot.objectiveCount}/${snapshot.objectiveTotal}`);
   }
 
   private updatePlayerDirection(x: number, y: number): void {

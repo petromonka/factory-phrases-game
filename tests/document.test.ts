@@ -41,7 +41,11 @@ it("reserves a portrait phone control deck below the game canvas", () => {
   const css = readFileSync("src/style.css", "utf8");
 
   expect(css).toContain("--mobile-controls-height");
+  expect(css).toContain("--mobile-joystick-size");
+  expect(css).toContain("--mobile-action-size");
   expect(css).toContain("#mobile-controls-zone");
   expect(css).toContain("height: calc(100svh - var(--mobile-controls-height))");
   expect(css).toContain("bottom: calc(var(--mobile-controls-height)");
+  expect(css).toContain("width: var(--mobile-joystick-size)");
+  expect(css).toContain("height: var(--mobile-action-size)");
 });

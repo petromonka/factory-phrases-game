@@ -97,7 +97,7 @@ test("opens controller dialogue by E without changing collectible progress or lo
   await expect(page.locator("canvas")).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem("factory-phrases-progress-v1"))).toBeNull();
   await pressInteractionKey(page);
-  await expect(status).toContainText("Фрази: 0/5");
+  await expect(status).toContainText("Фрази: 0/6");
   expect(pageErrors).toEqual([]);
 });
 
@@ -140,7 +140,7 @@ test("plays parking level and restarts from Yura", async ({ page }, testInfo) =>
   await expect(status).toContainText("Глянемо Юр.");
   await pressInteractionKey(page);
   await expect(status).toHaveAttribute("data-scene", "factory");
-  await expect(status).toContainText("Фрази: 0/5");
+  await expect(status).toContainText("Фрази: 0/6");
   expect(pageErrors).toEqual([]);
 });
 

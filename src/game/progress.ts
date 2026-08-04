@@ -3,6 +3,8 @@ export interface RunProgressSnapshot {
   controllerCompleted: boolean;
   collectibleCount: number;
   collectibleTotal: number;
+  objectiveCount: number;
+  objectiveTotal: number;
   parkingUnlocked: boolean;
 }
 
@@ -39,11 +41,17 @@ export class RunProgress {
   }
 
   public snapshot(): RunProgressSnapshot {
+    const collectibleTotal = this.knownIds.size;
+    const objectiveTotal = collectibleTotal + 1;
+    const objectiveCount = this.collectibles.size + (this.controllerCompleted ? 1 : 0);
+
     return Object.freeze({
       collectibles: new Set(this.collectibles),
       controllerCompleted: this.controllerCompleted,
       collectibleCount: this.collectibles.size,
-      collectibleTotal: this.knownIds.size,
+      collectibleTotal,
+      objectiveCount,
+      objectiveTotal,
       parkingUnlocked: this.isParkingUnlocked()
     });
   }

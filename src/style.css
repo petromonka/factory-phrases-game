@@ -1,5 +1,8 @@
 :root {
-  --mobile-controls-height: 10rem;
+  --mobile-controls-height: 13rem;
+  --mobile-joystick-size: 8.75rem;
+  --mobile-joystick-knob-size: 3.9rem;
+  --mobile-action-size: 6.25rem;
   color-scheme: dark;
   background: #101411;
   font-family: system-ui, sans-serif;
@@ -153,14 +156,24 @@ body {
 
   #touch-joystick {
     left: calc(1rem + env(safe-area-inset-left));
-    bottom: calc(var(--mobile-controls-height) / 2 - 3rem + env(safe-area-inset-bottom) / 2);
-    width: 6rem;
-    height: 6rem;
+    bottom: calc(var(--mobile-controls-height) / 2 - var(--mobile-joystick-size) / 2 + env(safe-area-inset-bottom) / 2);
+    width: var(--mobile-joystick-size);
+    height: var(--mobile-joystick-size);
+    background: rgb(16 20 17 / 76%);
+  }
+
+  #touch-joystick-knob {
+    width: var(--mobile-joystick-knob-size);
+    height: var(--mobile-joystick-knob-size);
   }
 
   #touch-interaction {
     right: calc(1rem + env(safe-area-inset-right));
-    bottom: calc(var(--mobile-controls-height) / 2 - 2.25rem + env(safe-area-inset-bottom) / 2);
+    bottom: calc(var(--mobile-controls-height) / 2 - var(--mobile-action-size) / 2 + env(safe-area-inset-bottom) / 2);
+    min-width: var(--mobile-action-size);
+    height: var(--mobile-action-size);
+    padding: 0 1rem;
+    font-size: clamp(1.05rem, 4.4vw, 1.45rem);
   }
 
   #orientation-hint {

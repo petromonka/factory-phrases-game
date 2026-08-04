@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- The exact main entrance label is **Блядер**.
+- The exact main entrance label is **Бл*дер**.
 - The exact checkpoint label is **KPP**.
 - The exact room labels are **IT**, **Відділ змін**, **QM**, and **Склад швейного цеху**.
 - The only route from spawn to the factory interior passes through KPP.
@@ -67,7 +67,7 @@ function objectText(object: MapObject): string | undefined {
 it("contains every exact world-space sign", () => {
   const signs = layer(readMap(), "signs").objects ?? [];
   expect(signs.map(objectText)).toEqual([
-    "Блядер",
+    "Бл*дер",
     "KPP",
     "IT",
     "Відділ змін",
@@ -125,7 +125,7 @@ Create signs in this exact order and place each at its relevant entrance:
 
 ```js
 const signs = [
-  sign("factory-name", "Блядер", 144, 488),
+  sign("factory-name", "Бл*дер", 144, 488),
   sign("checkpoint", "KPP", 144, 320),
   sign("it-office", "IT", 208, 216),
   sign("shifts-office", "Відділ змін", 360, 216),
@@ -285,7 +285,7 @@ for (const object of signLayer.objects) {
 
   this.add.text(object.x, object.y, text, {
     fontFamily: '"Courier New", monospace',
-    fontSize: text === "Блядер" ? "24px" : "15px",
+    fontSize: text === "Бл*дер" ? "24px" : "15px",
     color: "#fff4dc",
     backgroundColor: "#24303a",
     padding: { x: 6, y: 3 },
@@ -518,7 +518,7 @@ Expected: all unit/document/map tests PASS, TypeScript and Vite build PASS, Play
 
 Start `npm run dev`, open the game, and confirm:
 
-1. **Блядер** is prominent at the starting entrance.
+1. **Бл*дер** is prominent at the starting entrance.
 2. **KPP** is the first unavoidable location.
 3. The guard is visible in KPP but does not block the player.
 4. **IT**, **Відділ змін**, **QM**, and **Склад швейного цеху** are readable at their doors.

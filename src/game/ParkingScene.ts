@@ -9,6 +9,7 @@ import { strongerMovement } from "./touchMovement";
 
 const MAP_KEY = "parking-map";
 const TILESET_KEY = "factory-tiles";
+const DIMON_CAR_KEY = "dimon-byd";
 const MOVEMENT_SPEED = 160;
 
 type TouchInteractionSource = { consumePressed(): boolean; setLabel(label: string): void };
@@ -62,7 +63,7 @@ export class ParkingScene extends Phaser.Scene {
   private readonly interactionTrigger = new EdgeTrigger();
   private targets: ParkingTarget[] = [];
   private activeTarget?: ParkingTarget;
-  private car!: Phaser.GameObjects.Container;
+  private car!: Phaser.GameObjects.Image | Phaser.GameObjects.Container;
   private parkedCars: Phaser.GameObjects.Container[] = [];
   private dimonDeparted = false;
   private restartQueued = false;
@@ -83,6 +84,7 @@ export class ParkingScene extends Phaser.Scene {
 
     this.load.tilemapTiledJSON(MAP_KEY, "assets/maps/parking.json");
     this.load.image(TILESET_KEY, "assets/tiles/factory-tiles.png");
+    this.load.image(DIMON_CAR_KEY, "assets/sprites/dimon-byd.png");
   }
 
   public create(): void {
@@ -131,11 +133,9 @@ export class ParkingScene extends Phaser.Scene {
 
       this.createTextures();
       this.renderTent(tentObject);
-      this.car = this.createCar(
+      this.car = this.createDimonCar(
         (carObject.x ?? 0) + (carObject.width ?? 48) / 2,
-        (carObject.y ?? 0) + (carObject.height ?? 28) / 2,
-        0x75bde8,
-        0x245a77
+        (carObject.y ?? 0) + (carObject.height ?? 28) / 2
       );
       const parkedColors = [
         [0x58606a, 0x24282d],
@@ -196,7 +196,7 @@ export class ParkingScene extends Phaser.Scene {
 
     if (this.dialogueRunner.isOpen()) {
       this.player.setVelocity(0, 0);
-      this.promptText.setText("Натисни E, щоб далі").setVisible(true);
+      this.promptText.setVisible(false);
       this.touchInteraction?.setLabel("Далі");
       if (interactPressed) this.advanceDialogue();
       return;
@@ -351,6 +351,10 @@ export class ParkingScene extends Phaser.Scene {
     const light = this.add.rectangle(25, 2, 4, 6, 0xffe08a);
 
     return this.add.container(x, y, [body, windshield, window, frontWheel, backWheel, light]).setDepth(12);
+  }
+
+  private createDimonCar(x: number, y: number): Phaser.GameObjects.Image {
+    return this.add.image(x, y, DIMON_CAR_KEY).setDisplaySize(96, 54).setDepth(12);
   }
 
   private createTextures(): void {

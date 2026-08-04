@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { expect, it } from "vitest";
 
 it("defines Dimon, Yura, car departure, and restart behavior", () => {
@@ -21,7 +22,6 @@ it("defines Dimon's two-line departure dialogue and grouped car behavior", () =>
   expect(source).toContain("targets: this.car");
   expect(source).toContain("speakerLabelFor(line)");
   expect(source).toContain("Натисни E, щоб говорити");
-  expect(source).toContain("Натисни E, щоб далі");
 });
 
 it("positions parking dialogue UI from the current scale size", () => {
@@ -30,4 +30,21 @@ it("positions parking dialogue UI from the current scale size", () => {
   expect(source).toContain("const width = this.scale.width");
   expect(source).toContain("const height = this.scale.height");
   expect(source).toContain("height -");
+});
+
+it("does not draw a separate advance prompt over the parking dialogue body", () => {
+  const source = readFileSync("src/game/ParkingScene.ts", "utf8");
+
+  expect(source).not.toContain('promptText.setText("Натисни E, щоб далі")');
+  expect(source).toContain('touchInteraction?.setLabel("Далі")');
+});
+
+it("uses Dimon's transparent BYD image asset for the departing car", () => {
+  const source = readFileSync("src/game/ParkingScene.ts", "utf8");
+
+  expect(existsSync("public/assets/sprites/dimon-byd.png")).toBe(true);
+  expect(source).toContain('const DIMON_CAR_KEY = "dimon-byd"');
+  expect(source).toContain('this.load.image(DIMON_CAR_KEY, "assets/sprites/dimon-byd.png")');
+  expect(source).toContain("createDimonCar(");
+  expect(source).toContain("setDisplaySize(96, 54)");
 });
