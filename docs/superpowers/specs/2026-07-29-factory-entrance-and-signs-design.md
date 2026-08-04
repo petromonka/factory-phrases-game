@@ -6,7 +6,7 @@ Make the factory entrance read as a believable sequence: the player first sees t
 
 ## Entrance Flow
 
-The player starts outside the factory-facing entrance near a prominent sign reading **«Блядер»**.
+The player starts outside the factory-facing entrance near a prominent sign reading **«Бл*дер»**.
 
 From the spawn point, the only route into the factory passes through the security checkpoint. The checkpoint is the first interior location on the route and contains the security guard. The guard does not physically block the player, and talking to the guard is optional. Map walls and entrances, rather than invisible gameplay rules, make the checkpoint impossible to bypass.
 
@@ -18,7 +18,7 @@ Signs are world-space objects attached to the map, so they move naturally with t
 
 The entrance and rooms use these exact labels:
 
-- **Блядер** — main factory entrance sign
+- **Бл*дер** — main factory entrance sign
 - **KPP** — security checkpoint
 - **IT** — IT office
 - **Відділ змін** — shifts department
@@ -67,4 +67,4 @@ Automated tests will verify:
 - Vasyl uses a visibly taller sprite while retaining a foot-anchored map position;
 - existing movement, interaction, progress, build, and browser smoke tests still pass.
 
-A browser check will confirm that **«Блядер»** is visible at the entrance, **KPP** is the first destination, every room sign is readable, the player can walk through the checkpoint without speaking to the guard, Vasyl is clearly taller than the other characters, and dialogue appears and disappears naturally as the player approaches and leaves a character.
+A browser check will confirm that **«Бл*дер»** is visible at the entrance, **KPP** is the first destination, every room sign is readable, the player can walk through the checkpoint without speaking to the guard, Vasyl is clearly taller than the other characters, and dialogue appears and disappears naturally as the player approaches and leaves a character.

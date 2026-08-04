@@ -112,7 +112,6 @@ it("draws an unlocked factory exit door and uses clear interaction copy", () => 
   expect(source).toContain("createExitDoor");
   expect(source).toContain("setExitDoorVisible");
   expect(source).toContain("Натисни E, щоб говорити");
-  expect(source).toContain("Натисни E, щоб далі");
   expect(source).toContain("Натисни E, щоб вийти на парковку");
   expect(source).toContain('setLabel("Говорити")');
   expect(source).toContain('setLabel("Далі")');
@@ -126,4 +125,18 @@ it("positions factory dialogue UI from the current scale size", () => {
   expect(source).toContain("const width = this.scale.width");
   expect(source).toContain("const height = this.scale.height");
   expect(source).toContain("height -");
+});
+
+it("does not draw a separate advance prompt over the factory dialogue body", () => {
+  const source = readFileSync("src/game/FactoryScene.ts", "utf8");
+
+  expect(source).not.toContain('promptText.setText("Натисни E, щоб далі")');
+  expect(source).toContain('touchInteraction?.setLabel("Далі")');
+});
+
+it("shows the factory counter as total required objectives including controller", () => {
+  const source = readFileSync("src/game/FactoryScene.ts", "utf8");
+
+  expect(source).toContain("snapshot.objectiveCount");
+  expect(source).toContain("snapshot.objectiveTotal");
 });

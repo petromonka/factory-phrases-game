@@ -204,7 +204,7 @@ function createFactoryMap() {
     point("npc-sewing", 728, 120, "npc")
   ];
   const signs = [
-    sign("factory-name", "Блядер", 144, 488),
+    sign("factory-name", "Бл*дер", 144, 488),
     sign("checkpoint", "KPP", 144, 320),
     sign("it-office", "IT", 208, 216),
     sign("shifts-office", "Відділ змін", 360, 216),
