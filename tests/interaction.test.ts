@@ -8,7 +8,7 @@ import {
   transitionNpcTarget,
   type NpcTarget
 } from "../src/game/FactoryScene";
-import { nearestInteractable, proximityDialogueTarget } from "../src/game/interaction";
+import { EdgeTrigger, nearestInteractable, proximityDialogueTarget } from "../src/game/interaction";
 
 function ambientTarget(id: string): Extract<NpcTarget, { kind: "ambient" }> {
   return { kind: "ambient", id, name: id, sprite: {} as never };
@@ -29,6 +29,16 @@ it("returns the nearest candidate inside the interaction radius", () => {
 
 it("returns undefined when every candidate is outside the radius", () => {
   expect(nearestInteractable({ x: 0, y: 0 }, [{ id: "far", x: 65, y: 0 }])).toBeUndefined();
+});
+
+it("fires once for a held key or held touch button", () => {
+  const trigger = new EdgeTrigger();
+
+  expect(trigger.update(false)).toBe(false);
+  expect(trigger.update(true)).toBe(true);
+  expect(trigger.update(true)).toBe(false);
+  expect(trigger.update(false)).toBe(false);
+  expect(trigger.update(true)).toBe(true);
 });
 
 it("does not reorder the candidate input while finding the nearest match", () => {
