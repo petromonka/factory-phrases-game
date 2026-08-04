@@ -7,6 +7,7 @@ import type { TouchInteractionSource } from "./touchInteraction";
 
 const stoppedInteractionSource: TouchInteractionSource = {
   consumePressed: () => false,
+  setLabel: () => undefined,
   destroy: () => undefined
 };
 

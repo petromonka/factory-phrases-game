@@ -1,5 +1,6 @@
 export interface TouchInteractionSource {
   consumePressed(): boolean;
+  setLabel(label: string): void;
   destroy(): void;
 }
 
@@ -46,6 +47,9 @@ export function createTouchInteractionButton(
       const pressed = pendingPress;
       pendingPress = false;
       return pressed;
+    },
+    setLabel: (label) => {
+      root.textContent = label;
     },
     destroy: () => {
       root.removeEventListener("pointerdown", onPointerDown);

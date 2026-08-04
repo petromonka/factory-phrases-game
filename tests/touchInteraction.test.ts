@@ -37,3 +37,14 @@ it("still records a press when pointer capture is unavailable", () => {
   expect(source.consumePressed()).toBe(true);
   source.destroy();
 });
+
+it("updates the visible mobile interaction label", () => {
+  const button = document.createElement("button");
+  const source = createTouchInteractionButton(button, true);
+
+  source.setLabel("Говорити");
+  expect(button.textContent).toBe("Говорити");
+  source.setLabel("Далі");
+  expect(button.textContent).toBe("Далі");
+  source.destroy();
+});

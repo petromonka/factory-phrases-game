@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { DialogueRunner } from "../src/game/dialogue";
+import { DialogueRunner, speakerLabelFor } from "../src/game/dialogue";
 
 it("starts on the first line and advances once per interaction", () => {
   const runner = new DialogueRunner();
@@ -25,4 +25,9 @@ it("rejects empty conversations before a blank panel can open", () => {
   const runner = new DialogueRunner();
 
   expect(() => runner.open({ id: "empty", lines: [] })).toThrow("Dialogue empty has no lines.");
+});
+
+it("hides the player speaker label while keeping NPC labels", () => {
+  expect(speakerLabelFor({ speaker: "Я", text: "Привіт, Сєрий" })).toBe("");
+  expect(speakerLabelFor({ speaker: "Сергій", text: "Здоров" })).toBe("Сергій");
 });
