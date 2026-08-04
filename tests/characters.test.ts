@@ -9,7 +9,7 @@ it("contains the five approved characters and exact dialogues", () => {
     { id: "it-vasyl", name: "Василь", room: "Кабінет ІТ", objectId: "npc-it" },
     { id: "shifts-serhii", name: "Сергій", room: "Відділ змін", objectId: "npc-shifts" },
     { id: "qm-olena", name: "Олена", room: "Кабінет QM", objectId: "npc-qm" },
-    { id: "sewing-sasha", name: "Саша", room: "Склад швейного цеху", objectId: "npc-sewing" }
+    { id: "sewing-sasha", name: "Олександр", room: "Склад швейного цеху", objectId: "npc-sewing" }
   ]);
 });
 

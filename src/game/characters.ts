@@ -66,13 +66,13 @@ export const CHARACTERS = [
   },
   {
     id: "sewing-sasha",
-    name: "Саша",
+    name: "Олександр",
     room: "Склад швейного цеху",
     objectId: "npc-sewing",
     spriteKey: "npc-sewing",
     dialogue: {
       id: "sewing-sasha",
-      lines: [{ speaker: "Саша", text: "Тут трапилася халепа - маніпулятор типу мишка маєте?" }]
+      lines: [{ speaker: "Олександр", text: "Тут трапилася халепа - маніпулятор типу мишка маєте?" }]
     }
   }
 ] as const satisfies readonly CharacterDefinition[];

@@ -4,6 +4,7 @@ type FactoryTestWindow = Window & {
   __factoryTestPositionPlayer?: (x: number, y: number) => void;
   __factoryTestPlayerPosition?: () => { x: number; y: number };
   __factoryTestUnlockParking?: () => void;
+  __factoryTestCompleteBaseObjectives?: () => void;
   __factoryTestPositionParkingPlayer?: (x: number, y: number) => void;
 };
 
@@ -122,7 +123,51 @@ test("opens controller dialogue by E without changing collectible progress or lo
   await expect(page.locator("canvas")).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem("factory-phrases-progress-v1"))).toBeNull();
   await pressInteractionKey(page);
-  await expect(status).toContainText("Фрази: 0/6");
+  await expect(status).toContainText("Справи: 1/8");
+  expect(pageErrors).toEqual([]);
+});
+
+test("requires bringing mouse and scanner before parking unlocks", async ({ page }) => {
+  const pageErrors: Error[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error));
+  await page.goto("/factory-phrases-game/");
+
+  const status = page.locator("#game-status");
+  await expect(status).toHaveAttribute("data-game-state", "ready");
+  await waitForFactoryHook(page);
+  await page.evaluate(() => (window as FactoryTestWindow).__factoryTestCompleteBaseObjectives?.());
+  await expect(status).toContainText("Справи: 6/8");
+
+  await positionFactoryPlayer(page, 168, 168);
+  await expect(status).toContainText("Взяти мишку");
+  await pressInteractionKey(page);
+  await expect(status).toContainText("Взяли мишку");
+
+  await positionFactoryPlayer(page, 728, 120);
+  await expect(status).toContainText("Віднести мишку Олександру");
+  await pressInteractionKey(page);
+  await expect(status).toContainText("О, то та мишка");
+  await pressInteractionKey(page);
+  await expect(status).toContainText("Справи: 7/8");
+  await pressInteractionKey(page);
+
+  await positionFactoryPlayer(page, 840, 384);
+  await expect(status).toContainText("Взяти сканер");
+  await pressInteractionKey(page);
+  await expect(status).toContainText("Взяли сканер");
+
+  await positionFactoryPlayer(page, 744, 344);
+  await expect(status).toContainText("Віднести сканер на лінію");
+  await page.waitForTimeout(120);
+  await pressInteractionKey(page);
+  await expect(status).toContainText("О, сканер!");
+  await pressInteractionKey(page);
+  await expect(status).toContainText("Справи: 8/8");
+  await page.waitForTimeout(120);
+  await pressInteractionKey(page);
+
+  await positionFactoryPlayer(page, 920, 488);
+  await expect(status).toHaveAttribute("data-game-state", "exit-prompt");
   expect(pageErrors).toEqual([]);
 });
 
@@ -174,7 +219,11 @@ test("plays parking level and restarts from Yura", async ({ page }, testInfo) =>
     await pressRestartKey(page);
   }
   await expect(status).toHaveAttribute("data-scene", "factory");
-  await expect(status).toContainText("Фрази: 0/6");
+  await expect(status).toContainText("Справи: 0/8");
+  await waitForFactoryHook(page);
+  await page.evaluate(() => (window as FactoryTestWindow).__factoryTestUnlockParking?.());
+  await positionFactoryPlayer(page, 920, 488);
+  await expect(status).toHaveAttribute("data-game-state", "exit-prompt");
   expect(pageErrors).toEqual([]);
 });
 

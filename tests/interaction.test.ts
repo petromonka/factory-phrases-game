@@ -149,3 +149,42 @@ it("shows the factory counter as total required objectives including controller"
   expect(source).toContain("snapshot.objectiveCount");
   expect(source).toContain("snapshot.objectiveTotal");
 });
+
+it("uses business counter copy for phrase and delivery objectives", () => {
+  const source = readFileSync("src/game/FactoryScene.ts", "utf8");
+
+  expect(source).toContain("Справи:");
+  expect(source).not.toContain("Фрази:");
+  expect(source).toContain("Є всі справи");
+});
+
+it("creates mouse and scanner item targets for delivery quests", () => {
+  const source = readFileSync("src/game/FactoryScene.ts", "utf8");
+
+  expect(source).toContain('kind: "item"');
+  expect(source).toContain('id: "mouse"');
+  expect(source).toContain('id: "scanner"');
+  expect(source).toContain("createItemTargets");
+  expect(source).toContain("createItemTextures");
+});
+
+it("supports picking up and delivering mouse and scanner objectives", () => {
+  const source = readFileSync("src/game/FactoryScene.ts", "utf8");
+
+  expect(source).toContain("handleItemPickup");
+  expect(source).toContain("handleDeliveryDialogue");
+  expect(source).toContain("pickupMouse");
+  expect(source).toContain("deliverMouse");
+  expect(source).toContain("pickupScanner");
+  expect(source).toContain("deliverScanner");
+  expect(source).toContain("Взяти мишку");
+  expect(source).toContain("Віднести мишку Олександру");
+  expect(source).toContain("Взяти сканер");
+  expect(source).toContain("Віднести сканер на лінію");
+});
+
+it("resets the factory completion banner state from progress on every scene create", () => {
+  const source = readFileSync("src/game/FactoryScene.ts", "utf8");
+
+  expect(source).toContain("this.completionShown = this.progressModel.isParkingUnlocked()");
+});

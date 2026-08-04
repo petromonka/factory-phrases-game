@@ -37,6 +37,17 @@ export type NpcTarget =
     }
   | { kind: "ambient"; id: string; name: string; sprite: Phaser.GameObjects.Sprite };
 
+type ItemTarget = {
+  kind: "item";
+  id: "mouse" | "scanner";
+  name: string;
+  prompt: string;
+  pickedMessage: string;
+  sprite: Phaser.GameObjects.Sprite;
+};
+
+type SceneTarget = NpcTarget | ItemTarget;
+
 export function isCollectibleTarget(
   target: { kind: "collectible" | "ambient" }
 ): target is { kind: "collectible" } {
@@ -71,14 +82,17 @@ export class FactoryScene extends Phaser.Scene {
   private touchMovement!: MovementSource;
   private touchInteraction?: TouchInteractionSource;
   private npcs: NpcTarget[] = [];
+  private itemTargets: ItemTarget[] = [];
   private exitPoint?: { x: number; y: number };
   private exitDoor?: Phaser.GameObjects.Container;
   private readonly ambientDialogueState = new AmbientDialogueState();
   private readonly dialogueRunner = new DialogueRunner();
   private readonly interactionTrigger = new EdgeTrigger();
   private progressModel!: RunProgress;
-  private activePromptTarget?: NpcTarget;
+  private activePromptTarget?: SceneTarget;
   private activeDialogueTarget?: NpcTarget;
+  private activeDelivery?: "mouse" | "scanner";
+  private interactionNoticeUntil = 0;
   private completionShown = false;
   private counterText!: Phaser.GameObjects.Text;
   private promptText!: Phaser.GameObjects.Text;
@@ -149,6 +163,7 @@ export class FactoryScene extends Phaser.Scene {
 
       this.createPlayerTextures();
       this.createNpcTextures();
+      this.createItemTextures();
 
       this.player = this.physics.add.sprite(spawnPoint.x ?? 0, spawnPoint.y ?? 0, "player-down");
       this.player.setDepth(20).setCollideWorldBounds(true).setSize(10, 12).setOffset(3, 7);
@@ -159,6 +174,7 @@ export class FactoryScene extends Phaser.Scene {
         ...this.createCollectibleTargets(npcLayer.objects),
         ...this.createControllerTargets(controllerLayer.objects)
       ];
+      this.itemTargets = this.createItemTargets();
 
       const keyboard = this.input.keyboard;
       if (!keyboard) throw new Error("Keyboard input is unavailable.");
@@ -177,8 +193,10 @@ export class FactoryScene extends Phaser.Scene {
       const existingProgress = this.registry.get("runProgress") as RunProgress | undefined;
       this.progressModel = existingProgress ?? new RunProgress(CHARACTERS.map((character) => character.id));
       this.registry.set("runProgress", this.progressModel);
+      this.completionShown = this.progressModel.isParkingUnlocked();
       this.updateCounter();
       this.setExitDoorVisible(this.progressModel.isParkingUnlocked());
+      this.updateItemVisibility();
 
       this.cameras.main
         .setBounds(0, 0, map.widthInPixels, map.heightInPixels)
@@ -220,11 +238,28 @@ export class FactoryScene extends Phaser.Scene {
     } else {
       this.activePromptTarget = this.findPromptTarget();
       if (this.activePromptTarget) {
-        this.touchInteraction?.setLabel("Говорити");
-        this.showInteractionPrompt("Натисни E, щоб говорити", "prompt", this.activePromptTarget.id);
-        if (interactPressed) this.startDialogue(this.activePromptTarget);
+        if (this.activePromptTarget.kind === "item") {
+          this.touchInteraction?.setLabel("Взяти");
+          this.showInteractionPrompt(this.activePromptTarget.prompt, "prompt", this.activePromptTarget.id);
+          if (interactPressed) this.handleItemPickup(this.activePromptTarget);
+        } else {
+          const deliveryLabel = this.deliveryLabelFor(this.activePromptTarget);
+          if (deliveryLabel) {
+            this.touchInteraction?.setLabel(deliveryLabel);
+          } else {
+            this.touchInteraction?.setLabel("Говорити");
+          }
+          this.showInteractionPrompt(
+            this.deliveryPromptFor(this.activePromptTarget) ?? "Натисни E, щоб говорити",
+            "prompt",
+            this.activePromptTarget.id
+          );
+          if (interactPressed) this.startDialogue(this.activePromptTarget);
+        }
       } else {
-        this.hideInteractionPrompt();
+        if (this.time.now >= this.interactionNoticeUntil) {
+          this.hideInteractionPrompt();
+        }
       }
     }
 
@@ -295,14 +330,47 @@ export class FactoryScene extends Phaser.Scene {
     });
   }
 
-  private findPromptTarget(): NpcTarget | undefined {
+  private createItemTargets(): ItemTarget[] {
+    return [
+      {
+        kind: "item",
+        id: "mouse",
+        name: "Мишка",
+        prompt: "Взяти мишку",
+        pickedMessage: "Взяли мишку. Віднести мишку Олександру",
+        sprite: this.add.sprite(168, 168, "item-mouse").setDepth(16)
+      },
+      {
+        kind: "item",
+        id: "scanner",
+        name: "Сканер",
+        prompt: "Взяти сканер",
+        pickedMessage: "Взяли сканер. Віднести сканер на лінію",
+        sprite: this.add.sprite(840, 384, "item-scanner").setDepth(16)
+      }
+    ];
+  }
+
+  private findPromptTarget(): SceneTarget | undefined {
     if (!this.player) return undefined;
+    const snapshot = this.progressModel.snapshot();
+    const visibleItems = this.itemTargets.filter((target) =>
+      target.id === "mouse"
+        ? !snapshot.hasMouse && !snapshot.mouseDelivered
+        : !snapshot.hasScanner && !snapshot.scannerDelivered
+    );
     const candidate = nearestInteractable(
       this.player,
-      this.npcs.map(({ id, sprite }) => ({ id, x: sprite.x, y: sprite.y }))
+      [
+        ...this.npcs.map(({ id, sprite }) => ({ id, x: sprite.x, y: sprite.y })),
+        ...visibleItems.map(({ id, sprite }) => ({ id, x: sprite.x, y: sprite.y }))
+      ]
     );
 
-    return this.npcs.find((target) => target.id === candidate?.id);
+    return (
+      this.npcs.find((target) => target.id === candidate?.id) ??
+      visibleItems.find((target) => target.id === candidate?.id)
+    );
   }
 
   private isNearExit(): boolean {
@@ -312,7 +380,13 @@ export class FactoryScene extends Phaser.Scene {
 
   private startDialogue(target: NpcTarget): void {
     this.activeDialogueTarget = target;
+    this.activeDelivery = undefined;
     this.ambientDialogueState.leave();
+    if (this.handleDeliveryDialogue(target)) {
+      this.renderCurrentDialogueLine();
+      return;
+    }
+
     if (isCollectibleTarget(target)) {
       this.dialogueRunner.open(target.dialogue);
     } else {
@@ -325,12 +399,20 @@ export class FactoryScene extends Phaser.Scene {
   private advanceDialogue(): void {
     const result = this.dialogueRunner.advance();
     if (result.completed && this.activeDialogueTarget) {
-      if (isCollectibleTarget(this.activeDialogueTarget)) {
+      if (this.activeDelivery === "mouse") {
+        this.progressModel.deliverMouse();
+        this.updateCounter();
+      } else if (this.activeDelivery === "scanner") {
+        this.progressModel.deliverScanner();
+        this.updateCounter();
+      } else if (isCollectibleTarget(this.activeDialogueTarget)) {
         this.progressModel.completeCollectible(this.activeDialogueTarget.id);
         this.updateCounter();
       } else {
         this.progressModel.completeController();
+        this.updateCounter();
       }
+      this.updateItemVisibility();
 
       if (!this.completionShown && this.progressModel.isParkingUnlocked()) {
         this.completionShown = true;
@@ -387,7 +469,58 @@ export class FactoryScene extends Phaser.Scene {
     this.dialogueBody.setVisible(false);
     this.dialogueHint.setVisible(false);
     this.activeDialogueTarget = undefined;
+    this.activeDelivery = undefined;
     this.ambientDialogueState.leave();
+  }
+
+  private handleItemPickup(target: ItemTarget): void {
+    if (target.id === "mouse") {
+      this.progressModel.pickupMouse();
+    } else {
+      this.progressModel.pickupScanner();
+    }
+    this.updateItemVisibility();
+    this.interactionNoticeUntil = this.time.now + 1800;
+    this.touchInteraction?.setLabel("E");
+    this.showInteractionPrompt(target.pickedMessage, "prompt", target.id);
+  }
+
+  private handleDeliveryDialogue(target: NpcTarget): boolean {
+    const snapshot = this.progressModel.snapshot();
+    if (target.id === "sewing-sasha" && snapshot.hasMouse && !snapshot.mouseDelivered) {
+      this.activeDelivery = "mouse";
+      this.dialogueRunner.open({
+        id: "deliver-mouse",
+        lines: [{ speaker: target.name, text: "О, то та мишка. Дякую, тепер можна клікати як люди." }]
+      });
+      return true;
+    }
+
+    if (target.id === "controller-1" && snapshot.hasScanner && !snapshot.scannerDelivered) {
+      this.activeDelivery = "scanner";
+      this.dialogueRunner.open({
+        id: "deliver-scanner",
+        lines: [{ speaker: target.name, text: "О, сканер! Тепер кінцевий контроль знову живий." }]
+      });
+      return true;
+    }
+
+    return false;
+  }
+
+  private deliveryPromptFor(target: NpcTarget): string | undefined {
+    const snapshot = this.progressModel.snapshot();
+    if (target.id === "sewing-sasha" && snapshot.hasMouse && !snapshot.mouseDelivered) {
+      return "Віднести мишку Олександру";
+    }
+    if (target.id === "controller-1" && snapshot.hasScanner && !snapshot.scannerDelivered) {
+      return "Віднести сканер на лінію";
+    }
+    return undefined;
+  }
+
+  private deliveryLabelFor(target: NpcTarget): string | undefined {
+    return this.deliveryPromptFor(target) ? "Віддати" : undefined;
   }
 
   private createExitDoor(x: number, y: number): Phaser.GameObjects.Container {
@@ -471,6 +604,26 @@ export class FactoryScene extends Phaser.Scene {
     graphics.destroy();
   }
 
+  private createItemTextures(): void {
+    if (!this.textures.exists("item-mouse")) {
+      const graphics = this.make.graphics({ x: 0, y: 0 }, false);
+      graphics.fillStyle(0x2c3338).fillRect(3, 4, 16, 8);
+      graphics.fillStyle(0xd7dde0).fillRect(5, 5, 12, 5);
+      graphics.fillStyle(0x75818a).fillRect(10, 4, 2, 8);
+      graphics.generateTexture("item-mouse", 22, 14);
+      graphics.destroy();
+    }
+
+    if (!this.textures.exists("item-scanner")) {
+      const graphics = this.make.graphics({ x: 0, y: 0 }, false);
+      graphics.fillStyle(0x20242a).fillRect(4, 2, 12, 6);
+      graphics.fillStyle(0xf2b84b).fillRect(5, 3, 10, 2);
+      graphics.fillStyle(0x20242a).fillRect(8, 8, 4, 10);
+      graphics.generateTexture("item-scanner", 20, 20);
+      graphics.destroy();
+    }
+  }
+
   private createInterface(): void {
     const width = this.scale.width;
     const height = this.scale.height;
@@ -532,7 +685,7 @@ export class FactoryScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setVisible(false);
     this.completionText = this.add
-      .text(width / 2, 52, "Є всі фрази і заявка з лінії. Можна виходити на парковку.", {
+      .text(width / 2, 52, "Є всі справи. Можна виходити на парковку.", {
         ...fixedText,
         backgroundColor: "#24392c",
         color: "#f8d98a",
@@ -547,7 +700,18 @@ export class FactoryScene extends Phaser.Scene {
 
   private updateCounter(): void {
     const snapshot = this.progressModel.snapshot();
-    this.counterText.setText(`Фрази: ${snapshot.objectiveCount}/${snapshot.objectiveTotal}`);
+    this.counterText.setText(`Справи: ${snapshot.objectiveCount}/${snapshot.objectiveTotal}`);
+  }
+
+  private updateItemVisibility(): void {
+    const snapshot = this.progressModel.snapshot();
+    for (const target of this.itemTargets) {
+      const visible =
+        target.id === "mouse"
+          ? !snapshot.hasMouse && !snapshot.mouseDelivered
+          : !snapshot.hasScanner && !snapshot.scannerDelivered;
+      target.sprite.setVisible(visible).setActive(visible);
+    }
   }
 
   private updatePlayerDirection(x: number, y: number): void {
