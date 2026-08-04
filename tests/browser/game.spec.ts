@@ -84,11 +84,12 @@ test("opens guard dialogue only from E and advances one line per press", async (
 
   await positionFactoryPlayer(page, 88, 392);
   await expect(status).toHaveAttribute("data-game-state", "prompt");
-  await expect(status).toContainText("E — поговорити");
+  await expect(status).toContainText("Натисни E, щоб говорити");
 
   await pressInteractionKey(page);
   await expect(status).toHaveAttribute("data-game-state", "dialogue");
   await expect(status).toContainText("Привіт, Сєрий");
+  await expect(status).not.toContainText("Я:");
   await pressInteractionKey(page);
   await expect(status).toContainText("Здоров");
   await pressInteractionKey(page);
@@ -134,6 +135,7 @@ test("plays parking level and restarts from Yura", async ({ page }) => {
   await page.evaluate(() => (window as FactoryTestWindow).__factoryTestUnlockParking?.());
   await positionFactoryPlayer(page, 920, 488);
   await expect(status).toHaveAttribute("data-game-state", "exit-prompt");
+  await expect(status).toContainText("Натисни E, щоб вийти на парковку");
   await pressInteractionKey(page);
   await expect(status).toHaveAttribute("data-scene", "parking");
 
