@@ -50,6 +50,7 @@ async function pressInteractionKey(page: Page): Promise<void> {
   await page.keyboard.down("e");
   await page.waitForTimeout(80);
   await page.keyboard.up("e");
+  await page.waitForTimeout(180);
 }
 
 async function pressRestartKey(page: Page): Promise<void> {
@@ -208,6 +209,13 @@ test("plays parking level and restarts from Yura", async ({ page }, testInfo) =>
   await expect(status).toContainText("Щееее ееее катридж маєте ?");
   await pressInteractionKey(page);
   await expect(status).toContainText("Глянемо Юр.");
+  await pressInteractionKey(page);
+  await expect(status).toHaveAttribute("data-game-state", "prompt");
+  await expect(status).toContainText("Можна йти до машини");
+  await positionParkingPlayer(page, 617, 302);
+  await expect(status).toContainText("Натисни E, щоб сісти в машину");
+  await pressInteractionKey(page);
+  await expect(status).toContainText("Робочий час з 9 до 17:30!");
   await pressInteractionKey(page);
   await expect(status).toHaveAttribute("data-game-state", "finale");
   await expect(status).toContainText("Ну всьо, всі діла порішав тепер можна і домів.");

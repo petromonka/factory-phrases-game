@@ -112,6 +112,22 @@ body {
   z-index: 20;
 }
 
+#fiction-disclaimer {
+  position: fixed;
+  top: calc(0.65rem + env(safe-area-inset-top));
+  right: calc(0.75rem + env(safe-area-inset-right));
+  left: calc(0.75rem + env(safe-area-inset-left));
+  margin: 0 auto;
+  max-width: 56rem;
+  color: rgb(255 244 220 / 70%);
+  font-size: clamp(0.65rem, 1.6vw, 0.82rem);
+  line-height: 1.25;
+  text-align: center;
+  text-shadow: 0 1px 2px #101411;
+  pointer-events: none;
+  z-index: 18;
+}
+
 @media (pointer: coarse) {
   #touch-joystick {
     display: flex;

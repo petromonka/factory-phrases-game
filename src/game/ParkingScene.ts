@@ -27,7 +27,7 @@ interface MovementKeys {
 }
 
 type ParkingTarget = {
-  id: "dimon" | "yura";
+  id: "dimon" | "yura" | "worktime";
   dialogue: DialogueDefinition;
   sprite: Phaser.GameObjects.Sprite;
 };
@@ -48,6 +48,10 @@ const PARKING_DIALOGUES = {
       { speaker: "Юра", text: "Щееее ееее катридж маєте ?" },
       { speaker: "Я", text: "Глянемо Юр." }
     ]
+  },
+  worktime: {
+    id: "parking-worktime",
+    lines: [{ speaker: "Тип", text: "Робочий час з 9 до 17:30!" }]
   }
 } as const satisfies Record<string, DialogueDefinition>;
 
@@ -71,7 +75,11 @@ export class ParkingScene extends Phaser.Scene {
   private activeTarget?: ParkingTarget;
   private car!: Phaser.GameObjects.Image | Phaser.GameObjects.Container;
   private parkedCars: Phaser.GameObjects.Container[] = [];
+  private finalCarPoint?: { x: number; y: number };
+  private worktimeSprite?: Phaser.GameObjects.Sprite;
   private dimonDeparted = false;
+  private readyForFinalCar = false;
+  private interactionNoticeUntil = 0;
   private finaleShown = false;
   private restartQueued = false;
   private promptText!: Phaser.GameObjects.Text;
@@ -162,6 +170,12 @@ export class ParkingScene extends Phaser.Scene {
           parkedColors[index % parkedColors.length][1]
         ).setDepth(11)
       );
+      const finalCarObject = parkedCarLayer.objects.find((object) => object.name === "parked-car-4")
+        ?? parkedCarLayer.objects.at(-1);
+      this.finalCarPoint = {
+        x: (finalCarObject?.x ?? 592) + (finalCarObject?.width ?? 50) / 2,
+        y: (finalCarObject?.y ?? 288) + (finalCarObject?.height ?? 28) / 2
+      };
 
       this.player = this.physics.add.sprite(spawnPoint.x, spawnPoint.y, "player-down");
       this.player.setDepth(20).setCollideWorldBounds(true).setSize(10, 12).setOffset(3, 7);
@@ -169,9 +183,15 @@ export class ParkingScene extends Phaser.Scene {
 
       const dimon = this.add.sprite(dimonPoint.x, dimonPoint.y, "npc-dimon").setOrigin(0.5, 1).setDepth(20);
       const yura = this.add.sprite(yuraPoint.x, yuraPoint.y, "npc-yura").setOrigin(0.5, 1).setDepth(20);
+      this.worktimeSprite = this.add
+        .sprite(this.finalCarPoint.x + 42, this.finalCarPoint.y + 24, "npc-worktime")
+        .setOrigin(0.5, 1)
+        .setDepth(20)
+        .setVisible(false);
       this.targets = [
         { id: "dimon", dialogue: PARKING_DIALOGUES.dimon, sprite: dimon },
-        { id: "yura", dialogue: PARKING_DIALOGUES.yura, sprite: yura }
+        { id: "yura", dialogue: PARKING_DIALOGUES.yura, sprite: yura },
+        { id: "worktime", dialogue: PARKING_DIALOGUES.worktime, sprite: this.worktimeSprite }
       ];
 
       const keyboard = this.input.keyboard;
@@ -222,13 +242,22 @@ export class ParkingScene extends Phaser.Scene {
       return;
     }
 
-    const target = this.findPromptTarget();
-    if (target) {
-      this.touchInteraction?.setLabel("Говорити");
-      this.showInteractionPrompt("Натисни E, щоб говорити", target.id);
-      if (interactPressed) this.startDialogue(target);
+    const finalCar = this.findFinalCarTarget();
+    if (finalCar) {
+      this.touchInteraction?.setLabel("Сісти");
+      this.showInteractionPrompt("Натисни E, щоб сісти в машину", finalCar.id);
+      if (interactPressed) this.startWorktimeFinale();
     } else {
-      this.hideInteractionPrompt();
+      const target = this.findPromptTarget();
+      if (target) {
+        this.touchInteraction?.setLabel("Говорити");
+        this.showInteractionPrompt("Натисни E, щоб говорити", target.id);
+        if (interactPressed) this.startDialogue(target);
+      } else {
+        if (this.time.now >= this.interactionNoticeUntil) {
+          this.hideInteractionPrompt();
+        }
+      }
     }
 
     const keyboardDirection = movementVector({
@@ -245,6 +274,7 @@ export class ParkingScene extends Phaser.Scene {
   private findPromptTarget(): ParkingTarget | undefined {
     if (!this.player) return undefined;
     const candidates = this.targets
+      .filter((target) => target.sprite.visible)
       .filter((target) => target.id !== "dimon" || !this.dimonDeparted)
       .map(({ id, sprite }) => ({ id, x: sprite.x, y: sprite.y }));
     const candidate = nearestInteractable(this.player, candidates);
@@ -267,6 +297,10 @@ export class ParkingScene extends Phaser.Scene {
       return;
     }
     if (result.completed && this.activeTarget?.id === "yura") {
+      this.activateFinalCarPrompt();
+      return;
+    }
+    if (result.completed && this.activeTarget?.id === "worktime") {
       this.showFinale();
       return;
     }
@@ -295,6 +329,35 @@ export class ParkingScene extends Phaser.Scene {
         }
       }
     });
+  }
+
+  private activateFinalCarPrompt(): void {
+    this.readyForFinalCar = true;
+    this.activeTarget?.sprite.setVisible(false);
+    this.dialogueRunner.close();
+    this.closeDialogue();
+    this.interactionNoticeUntil = this.time.now + 2200;
+    this.touchInteraction?.setLabel("E");
+    this.updateStatusMirror("prompt", "Можна йти до машини", "final-car");
+  }
+
+  private findFinalCarTarget(): { id: "final-car"; x: number; y: number } | undefined {
+    if (!this.readyForFinalCar || !this.player || !this.finalCarPoint) return undefined;
+
+    const target = { id: "final-car" as const, ...this.finalCarPoint };
+    return nearestInteractable(this.player, [target]) ? target : undefined;
+  }
+
+  private startWorktimeFinale(): void {
+    if (!this.worktimeSprite) return;
+
+    this.readyForFinalCar = false;
+    this.worktimeSprite.setVisible(true);
+    this.activeTarget = this.targets.find((target) => target.id === "worktime");
+    if (!this.activeTarget) return;
+
+    this.dialogueRunner.open(this.activeTarget.dialogue);
+    this.renderCurrentDialogueLine();
   }
 
   private restartFactory(): void {
@@ -397,6 +460,9 @@ export class ParkingScene extends Phaser.Scene {
     }
     if (!this.textures.exists("npc-yura")) {
       this.createNpcTexture("npc-yura", 0x6b5f3a, 0xffdc76);
+    }
+    if (!this.textures.exists("npc-worktime")) {
+      this.createNpcTexture("npc-worktime", 0x7a2d2d, 0xffc06d);
     }
   }
 
