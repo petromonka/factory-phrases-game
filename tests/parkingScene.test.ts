@@ -2,12 +2,17 @@ import { readFileSync } from "node:fs";
 import { existsSync } from "node:fs";
 import { expect, it } from "vitest";
 
-it("defines Dimon, Yura, car departure, and restart behavior", () => {
+it("defines Dimon, Yura, car departure, and final restart behavior", () => {
   const source = readFileSync("src/game/ParkingScene.ts", "utf8");
 
   expect(source).toContain("Не міган канєшно, але піде");
   expect(source).toContain("Щось в мене цееееейво гальмує інтеееернееет в палатці");
   expect(source).toContain("startCarDeparture");
+  expect(source).toContain("showFinale");
+  expect(source).toContain("Ну всьо, всі діла порішав тепер можна і домів.");
+  expect(source).toContain("Натисніть R, щоб почати з початку");
+  expect(source).toContain('touchInteraction?.setLabel("Спочатку")');
+  expect(source).toContain("this.restartKey.isDown");
   expect(source).toContain("restartFactory");
   expect(source).toContain('this.scene.start("factory")');
 });

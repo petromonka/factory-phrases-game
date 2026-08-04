@@ -51,6 +51,31 @@ async function pressInteractionKey(page: Page): Promise<void> {
   await page.keyboard.up("e");
 }
 
+async function pressRestartKey(page: Page): Promise<void> {
+  await page.keyboard.down("r");
+  await page.waitForTimeout(80);
+  await page.keyboard.up("r");
+}
+
+async function pressTouchInteraction(page: Page): Promise<void> {
+  const interaction = page.locator("#touch-interaction");
+  const interactionBox = await interaction.boundingBox();
+  if (!interactionBox) throw new Error("Interaction button has no bounding box");
+
+  await interaction.dispatchEvent("pointerdown", {
+    pointerId: 3,
+    pointerType: "touch",
+    clientX: interactionBox.x + interactionBox.width / 2,
+    clientY: interactionBox.y + interactionBox.height / 2
+  });
+  await page.dispatchEvent("body", "pointerup", {
+    pointerId: 3,
+    pointerType: "touch",
+    clientX: interactionBox.x + interactionBox.width / 2,
+    clientY: interactionBox.y + interactionBox.height / 2
+  });
+}
+
 test("opens guard dialogue only from E and advances one line per press", async ({ page }) => {
   const pageErrors: Error[] = [];
   page.on("pageerror", (error) => pageErrors.push(error));
@@ -139,6 +164,15 @@ test("plays parking level and restarts from Yura", async ({ page }, testInfo) =>
   await pressInteractionKey(page);
   await expect(status).toContainText("Глянемо Юр.");
   await pressInteractionKey(page);
+  await expect(status).toHaveAttribute("data-game-state", "finale");
+  await expect(status).toContainText("Ну всьо, всі діла порішав тепер можна і домів.");
+  await expect(status).toContainText("Натисніть R, щоб почати з початку");
+  if (testInfo.project.name === "mobile-chromium") {
+    await expect(page.locator("#touch-interaction")).toHaveText("Спочатку");
+    await pressTouchInteraction(page);
+  } else {
+    await pressRestartKey(page);
+  }
   await expect(status).toHaveAttribute("data-scene", "factory");
   await expect(status).toContainText("Фрази: 0/6");
   expect(pageErrors).toEqual([]);
